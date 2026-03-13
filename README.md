@@ -60,19 +60,6 @@ So I built **Pixel Ladder**: a fully client-side tool that runs AI models direct
 
 ---
 
-## 🎨 Design
-
-The app features a **"Brutalist Pixel"** aesthetic:
-
-| Mode | Style |
-|---|---|
-| 🌑 Dark Mode | Charcoal + Neon Green — Retro Terminal |
-| ☀️ Light Mode | Warm Earth Tones — *Porco Rosso* inspired |
-
-Typography uses the `VT323` font for an authentic 8-bit feel.
-
----
-
 ## ⚡ Quick Start
 
 **Prerequisites:** Node.js 18+ and npm.
