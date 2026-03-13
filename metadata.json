@@ -1,0 +1,5 @@
+{
+  "name": "Pixel Ladder",
+  "description": "In-browser image upscaling and print calculator using ONNX Runtime Web with a retro pixel aesthetic.",
+  "requestFramePermissions": []
+}

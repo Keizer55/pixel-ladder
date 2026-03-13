@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-bg: #1c1f24;
+  --color-text: #e0e0e0;
+  --color-accent: #5cb85c;
+  --color-accent-dim: rgba(92, 184, 92, 0.15);
+  --color-panel: #1c1f24;
+  --color-muted: #8b949e;
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  --rc-focus-color: var(--color-muted);
+  --rc-border-color: rgba(255, 255, 255, 0.3);
+}
+
+:root[data-theme="light"] {
+  --color-bg: #f4ece6;
+  --color-text: #3e2723;
+  --color-accent: #8b5a2b;
+  --color-accent-dim: rgba(139, 90, 43, 0.15);
+  --color-panel: #fffaf5;
+  --color-muted: #8d6e63;
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+}
+
+@theme {
+  --color-bg: var(--color-bg);
+  --color-text: var(--color-text);
+  --color-accent: var(--color-accent);
+  --color-accent-dim: var(--color-accent-dim);
+  --color-panel: var(--color-panel);
+  --color-muted: var(--color-muted);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-background: var(--color-bg);
+  --color-primary: var(--color-text);
+  --color-surface: var(--color-panel);
+}
+
+@layer utilities {
+  .tech-panel {
+    border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+    background-color: var(--color-panel);
+    position: relative;
+  }
+
+  .tech-panel-inner {
+    border: 1px solid color-mix(in srgb, var(--color-muted) 30%, transparent);
+    background-color: transparent;
+    position: relative;
+  }
+
+  .tech-panel-corner::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    background: 
+       linear-gradient(var(--color-accent), var(--color-accent)) top left / 8px 1px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) top left / 1px 8px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) top right / 8px 1px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) top right / 1px 8px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) bottom left / 8px 1px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) bottom left / 1px 8px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) bottom right / 8px 1px no-repeat,
+       linear-gradient(var(--color-accent), var(--color-accent)) bottom right / 1px 8px no-repeat;
+  }
+
+  .tech-panel-inner-corner::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    background: 
+       linear-gradient(var(--color-muted), var(--color-muted)) top left / 6px 1px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) top left / 1px 6px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) top right / 6px 1px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) top right / 1px 6px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) bottom left / 6px 1px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) bottom left / 1px 6px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) bottom right / 6px 1px no-repeat,
+       linear-gradient(var(--color-muted), var(--color-muted)) bottom right / 1px 6px no-repeat;
+  }
+
+  .tech-button {
+    border: 1px solid var(--color-accent);
+    background-color: transparent;
+    color: var(--color-accent);
+    transition: all 0.2s;
+  }
+  
+  .tech-button:hover {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .tech-button-active {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .rendering-pixelated {
+    image-rendering: pixelated;
+  }
+  
+  .dot-grid {
+    background-image: radial-gradient(color-mix(in srgb, var(--color-muted) 40%, transparent) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="100%" height="100%" shape-rendering="crispEdges">
+  <!-- Wall (Big Pixels) -->
+  <rect x="0" y="0" width="32" height="32" fill="var(--color-panel)" />
+  <rect x="0" y="0" width="16" height="8" fill="var(--color-bg)" />
+  <rect x="18" y="0" width="14" height="8" fill="var(--color-bg)" />
+  <rect x="0" y="10" width="8" height="8" fill="var(--color-bg)" />
+  <rect x="10" y="10" width="16" height="8" fill="var(--color-bg)" />
+  <rect x="28" y="10" width="4" height="8" fill="var(--color-bg)" />
+  <rect x="0" y="20" width="16" height="8" fill="var(--color-bg)" />
+  <rect x="18" y="20" width="14" height="8" fill="var(--color-bg)" />
+  
+  <!-- Ladder -->
+  <rect x="6" y="12" width="2" height="20" fill="#D2B48C" />
+  <rect x="14" y="12" width="2" height="20" fill="#D2B48C" />
+  <rect x="6" y="16" width="10" height="2" fill="#D2B48C" />
+  <rect x="6" y="22" width="10" height="2" fill="#D2B48C" />
+  <rect x="6" y="28" width="10" height="2" fill="#D2B48C" />
+
+  <!-- Pig -->
+  <!-- Body -->
+  <rect x="8" y="14" width="6" height="6" fill="#FFB6C1" />
+  <!-- Head -->
+  <rect x="10" y="10" width="6" height="6" fill="#FFC0CB" />
+  <!-- Snout -->
+  <rect x="14" y="12" width="3" height="3" fill="#FF69B4" />
+  <!-- Eye -->
+  <rect x="13" y="11" width="1" height="1" fill="#000000" />
+  <!-- Ear -->
+  <rect x="10" y="9" width="2" height="2" fill="#FF69B4" />
+
+  <!-- Arm holding brush -->
+  <rect x="12" y="15" width="4" height="2" fill="#FFB6C1" />
+  <!-- Brush handle -->
+  <rect x="16" y="14" width="4" height="1" fill="#8B4513" />
+  <!-- Brush tip -->
+  <rect x="20" y="13" width="2" height="3" fill="var(--color-accent)" />
+  
+  <!-- The small painted pixel -->
+  <rect x="24" y="14" width="2" height="2" fill="var(--color-accent)" />
+
+  <!-- Bucket -->
+  <rect x="4" y="20" width="4" height="4" fill="#808080" />
+  <!-- Paint in bucket -->
+  <rect x="4" y="20" width="4" height="1" fill="var(--color-accent)" />
+</svg>
