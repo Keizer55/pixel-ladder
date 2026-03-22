@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Navigation from './components/Navigation';
 import QuickScale from './components/QuickScale';
@@ -8,6 +8,13 @@ import CookieConsent from './components/CookieConsent';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'quick' | 'print' | 'wall'>('quick');
+
+  useEffect(() => {
+    // If user has accepted cookies, window.clarity will be available
+    if (window.clarity) {
+      window.clarity('set', 'active_tab', activeTab);
+    }
+  }, [activeTab]);
 
   return (
     <Layout>
