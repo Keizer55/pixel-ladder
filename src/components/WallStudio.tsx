@@ -547,7 +547,7 @@ export default function WallStudio() {
                 }}
               >
                 {bgImage && (
-                  <img src={bgImage} alt="Wall" onLoad={handleImageLoad} className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
+                  <img src={bgImage} alt="Background wall for virtual print layout" onLoad={handleImageLoad} className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
                 )}
 
                 {/* Calibration Line Overlay */}
@@ -590,7 +590,7 @@ export default function WallStudio() {
                       whileDrag={!isCalibrating ? { scale: 1.05, zIndex: 50, boxShadow: "0px 10px 20px rgba(0,0,0,0.3)" } : {}}
                     >
                       {frame.image ? (
-                        <img src={frame.image} alt={`Frame ${index + 1}`} className="w-full h-full object-cover pointer-events-none" />
+                        <img src={frame.image} alt={`Virtual artwork frame ${index + 1} layout`} className="w-full h-full object-cover pointer-events-none" />
                       ) : (
                         <div className="text-center p-1 pointer-events-none">
                           <p className="text-accent text-[10px] md:text-xs">{frame.width}x{frame.height}</p>
@@ -606,18 +606,18 @@ export default function WallStudio() {
       </div>
 
       {/* Explanation Section */}
-      <div className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
-        <h4 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
-          <Zap className="w-4 h-4 text-accent" /> How It Works
-        </h4>
+      <section className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
+        <h3 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
+          <Zap className="w-4 h-4 text-accent" aria-hidden="true" /> How Pixel Ladder Wall Studio Works
+        </h3>
         <p className="text-muted text-sm max-w-3xl mx-auto leading-relaxed">
-          Set your wall dimensions or upload a photo of your wall to use as a background. Add frames with custom sizes and drag them around the preview to plan your layout.
+          Set your dimensions or upload a photo of your actual wall to simulate how your upscaled images and prints will look in reality. Add virtual frames with custom sizes and easily drag them around the canvas to plan your perfect gallery wall layout natively in your browser.
           <br/><br/>
           <span className="text-accent/80">
-            📐 Tip: When using a wall photo, calibrate the scale by clicking two points on the wall and entering the real-world distance between them. This ensures frames are rendered at their true proportional size.
+            📐 Tip: When uploading your own wall photo, calibrate the exact scale by clicking two points on the wall and entering the real-world distance between them. This helps guarantee your picture frames are simulated at their true proportional sizes.
           </span>
         </p>
-      </div>
+      </section>
     </div>
   );
 }

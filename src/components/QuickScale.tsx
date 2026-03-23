@@ -190,7 +190,7 @@ export default function QuickScale() {
               >
                 <img 
                   src={result.url} 
-                  alt="Upscaled result" 
+                  alt="Upscaled high-resolution result from Pixel Ladder AI" 
                   className="max-w-full max-h-full block relative z-10"
                   draggable={false}
                   onMouseMove={handleMouseMove}
@@ -219,7 +219,7 @@ export default function QuickScale() {
               <div className="relative flex items-center justify-center h-[360px] max-w-[90%] bg-white rounded-sm drop-shadow-xl z-10 p-2">
                 <img 
                   src={previewUrl} 
-                  alt="Original preview" 
+                  alt="Original image preview for AI upscaling" 
                   className="max-w-full max-h-full block"
                 />
               </div>
@@ -270,19 +270,19 @@ export default function QuickScale() {
       </div>
 
       {/* Explanation Section */}
-      <div className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
-        <h4 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
-          <Zap className="w-4 h-4 text-accent" /> How It Works
-        </h4>
+      <section className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
+        <h3 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
+          <Zap className="w-4 h-4 text-accent" aria-hidden="true" /> How Pixel Ladder Works
+        </h3>
         <p className="text-muted text-sm max-w-3xl mx-auto leading-relaxed">
-          PixelScale AI uses a neural network (ONNX Runtime Web) to upscale your images <strong>entirely in your browser</strong>. 
-          No data is sent to any server, ensuring complete privacy. 
+          <strong>Pixel Ladder</strong> uses a state-of-the-art neural network (ONNX Runtime Web) to automatically upscale, crop, and enhance your digital images <strong>entirely inside your browser</strong>. 
+          Because we use local AI image upscaling, no data or photos are ever sent to any external server, ensuring complete 100% privacy and security for your images. 
           <br/><br/>
           <span className="text-accent/80">
-            ⚠️ Note: Because the AI model runs locally on your device, processing high-resolution images may consume significant CPU/GPU resources and take a few moments to complete.
+            ⚠️ Note: Since this free browser-based upscaler runs locally on your device, processing very high-resolution images or using complex print preparation pipelines may consume significant CPU/GPU resources and take a few moments to complete.
           </span>
         </p>
-      </div>
+      </section>
     </div>
   );
 }

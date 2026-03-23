@@ -314,11 +314,11 @@ export default function PrintStudio() {
                         <img 
                           src={`data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${wrapperW}' height='${wrapperH}'/%3E`}
                           className="max-h-[400px] w-auto max-w-full block opacity-0 pointer-events-none"
-                          alt="spacer"
+                          alt="" aria-hidden="true"
                         />
                         <img
                           ref={imgRef}
-                          alt="Crop me"
+                          alt="Image to crop for printing"
                           src={imgSrc}
                           onLoad={onImageLoad}
                           className="absolute pointer-events-none inset-0 m-auto"
@@ -332,7 +332,7 @@ export default function PrintStudio() {
                     ) : (
                       <img
                         ref={imgRef}
-                        alt="Crop me"
+                        alt="Image to crop for printing"
                         src={imgSrc}
                         onLoad={onImageLoad}
                         className="max-h-[400px] w-auto max-w-full object-contain block"
@@ -347,19 +347,19 @@ export default function PrintStudio() {
       </div>
 
       {/* Explanation Section */}
-      <div className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
-        <h4 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
-          <Zap className="w-4 h-4 text-accent" /> How It Works
-        </h4>
+      <section className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
+        <h3 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
+          <Zap className="w-4 h-4 text-accent" aria-hidden="true" /> How Pixel Ladder Print Calculator Works
+        </h3>
         <p className="text-muted text-sm max-w-3xl mx-auto leading-relaxed">
-          Enter your desired print dimensions (width, height) and DPI to calculate the <strong>exact pixel resolution</strong> your image needs.
-          Then load an image in the Crop Studio to crop it to the correct aspect ratio.
+          Enter your desired real-world print dimensions (width, height) and DPI (dots per inch) to calculate the <strong>exact pixel resolution</strong> your image needs for high-quality printing.
+          Then load a photo into our free Crop Studio to easily crop it to the correct aspect ratio natively in your browser.
           <br/><br/>
           <span className="text-accent/80">
-            💡 Tip: Enable "Exact Pixel Cut" to lock the crop selection to the precise pixel dimensions required. If your image is too small, upscale it first with Quick Scale, then come back here to crop.
+            💡 Tip: Enable "Exact Pixel Cut" to lock the crop selection to the precise pixel dimensions required. If your image is too small to print without losing quality, use our AI Image Upscaler (Quick Scale tab) to increase its resolution first, then come back here to crop.
           </span>
         </p>
-      </div>
+      </section>
     </div>
   );
 }
