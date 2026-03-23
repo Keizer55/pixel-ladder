@@ -104,5 +104,20 @@ This is caused by strict **COEP/CORP** headers that block cross-origin module lo
 
 ---
 
+## 🛡️ 7. Content-Security-Policy (CSP)
+If your Docker container or Nginx proxy enforces a strict **Content-Security-Policy (CSP)**, you must allow WebAssembly compilation or the browser will throw this error:
+```
+RuntimeError: Aborted(CompileError: call to WebAssembly.instantiate() blocked by CSP)
+```
+
+**To fix this**: Ensure your `script-src` directive includes `'wasm-unsafe-eval'`.
+Example Nginx header:
+```nginx
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:;";
+```
+*(The `<meta>` tag in `index.html` has already been updated with these permissions).*
+
+---
+
 > [!NOTE]
 > If you encounter issues with ONNX memory limits on a small VPS, consider enabling **Swap** memory on your server to prevent the build process from crashing.
