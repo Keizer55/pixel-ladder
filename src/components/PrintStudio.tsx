@@ -254,6 +254,7 @@ export default function PrintStudio() {
                     <span className="text-[10px] uppercase text-muted tracking-wider hidden md:inline">Exact Pixel Cut</span>
                     <button 
                       onClick={() => setIsExactMode(!isExactMode)}
+                      aria-label="Toggle exact pixel cut mode"
                       className={`relative w-8 h-4 rounded-full transition-colors outline-none focus:outline-none ${
                         isExactMode ? 'bg-accent' : 'bg-muted/30 border border-muted/50'
                       }`}

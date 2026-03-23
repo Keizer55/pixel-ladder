@@ -64,7 +64,17 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.clarity.ms https://scripts.clarity.ms; connect-src 'self' https://www.clarity.ms https://*.clarity.ms blob:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; worker-src 'self' blob:; child-src 'self' blob:; upgrade-insecure-requests" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f4ece6; color: #1a1a1a; padding: 2rem;">
+        <h1 style="font-size: 2.5rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 300; margin-bottom: 0.5rem; text-align: center;">Pixel Ladder</h1>
+        <h2 style="font-size: 1rem; color: #666; margin-bottom: 2rem; font-weight: 400; text-align: center;">Neural Image Upscaling Engine</h2>
+        <p style="max-width: 600px; text-align: center; line-height: 1.6; color: #444;">
+          Free browser-based AI tool designed to natively upscale, crop, and prepare your images securely. Utilizing advanced local Neural Network processing (Real-ESRGAN/ONNX) to enhance your digital art and photos for high-resolution printing.
+          <br><br>
+          100% private. No uploads. No external servers required. Processing happens entirely on your local device.
+        </p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

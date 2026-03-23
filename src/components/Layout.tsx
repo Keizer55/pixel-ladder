@@ -23,6 +23,7 @@ export default function Layout({ children }: LayoutProps) {
           onClick={toggleTheme}
           className="absolute top-0 right-0 p-2 text-accent hover:bg-accent hover:text-bg border border-accent rounded-sm z-10 flex items-center gap-2 bg-panel transition-colors"
           title="Toggle Theme"
+          aria-label="Toggle light and dark theme mode"
         >
           {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           <span className="uppercase hidden md:inline text-xs tracking-wider">{theme === 'dark' ? 'Light' : 'Dark'}</span>

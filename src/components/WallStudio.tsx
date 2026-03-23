@@ -425,7 +425,7 @@ export default function WallStudio() {
                     <button onClick={startCalibration} className={`flex-1 py-1.5 text-xs uppercase rounded-sm flex items-center justify-center gap-1 ${isCalibrating ? 'tech-button-active' : 'tech-button'}`}>
                       <Ruler className="w-3 h-3" /> {isCalibrating ? 'Click 2 Points...' : 'Calibrate'}
                     </button>
-                    <button onClick={removeBg} className="px-2 py-1.5 text-xs uppercase border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-bg flex items-center justify-center rounded-sm transition-colors" title="Remove Photo">
+                    <button onClick={removeBg} aria-label="Remove background photo" className="px-2 py-1.5 text-xs uppercase border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-bg flex items-center justify-center rounded-sm transition-colors" title="Remove Photo">
                       <X className="w-3 h-3" />
                     </button>
                   </div>
@@ -454,7 +454,7 @@ export default function WallStudio() {
                 <input type="number" value={newFrameWidth} onChange={(e) => setNewFrameWidth(Number(e.target.value))} className="w-full bg-bg border border-muted/50 text-text p-1.5 text-xs font-mono rounded-sm focus:border-muted outline-none" placeholder="W" />
                 <span className="text-muted text-xs">x</span>
                 <input type="number" value={newFrameHeight} onChange={(e) => setNewFrameHeight(Number(e.target.value))} className="w-full bg-bg border border-muted/50 text-text p-1.5 text-xs font-mono rounded-sm focus:border-muted outline-none" placeholder="H" />
-                <button onClick={handleAddFrame} className="tech-button-active px-3 py-1.5 uppercase rounded-sm flex items-center justify-center">
+                <button onClick={handleAddFrame} aria-label="Add new frame" className="tech-button-active px-3 py-1.5 uppercase rounded-sm flex items-center justify-center">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
@@ -491,7 +491,7 @@ export default function WallStudio() {
                           <span className="text-text uppercase text-xs">
                             Frame {index + 1} <span className="text-muted">({frame.width}x{frame.height}{unit})</span>
                           </span>
-                          <button onClick={() => handleRemoveFrame(frame.id)} className="text-muted hover:text-red-500 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                          <button onClick={() => handleRemoveFrame(frame.id)} aria-label="Remove layout frame" className="text-muted hover:text-red-500 transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                         <div className="flex justify-between items-center text-[10px]">
                           <span className="text-muted flex items-center gap-1">

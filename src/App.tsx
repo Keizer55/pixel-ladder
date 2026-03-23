@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import Layout from './components/Layout';
 import Navigation from './components/Navigation';
-import QuickScale from './components/QuickScale';
-import PrintStudio from './components/PrintStudio';
-import WallStudio from './components/WallStudio';
 import CookieConsent from './components/CookieConsent';
+
+const QuickScale = lazy(() => import('./components/QuickScale'));
+const PrintStudio = lazy(() => import('./components/PrintStudio'));
+const WallStudio = lazy(() => import('./components/WallStudio'));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'quick' | 'print' | 'wall'>('quick');
@@ -28,9 +29,16 @@ export default function App() {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="mt-8 flex-grow">
-        {activeTab === 'quick' && <QuickScale />}
-        {activeTab === 'print' && <PrintStudio />}
-        {activeTab === 'wall' && <WallStudio />}
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-accent gap-4">
+            <span className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></span>
+            <span className="font-mono text-xs tracking-widest uppercase animate-pulse">Loading Module...</span>
+          </div>
+        }>
+          {activeTab === 'quick' && <QuickScale />}
+          {activeTab === 'print' && <PrintStudio />}
+          {activeTab === 'wall' && <WallStudio />}
+        </Suspense>
       </main>
 
       <footer className="mt-16 border-t border-accent/20 pt-8 pb-4 text-xs md:text-sm text-muted font-mono">
