@@ -1,7 +1,14 @@
 import * as ort from 'onnxruntime-web';
 
-// Configure ONNX Runtime Web to use WebAssembly
-ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
+// Self-host WASM files from /ort/ to avoid cross-origin issues in production
+// (CDN loading fails when COEP/CORP headers are enforced by the server)
+ort.env.wasm.wasmPaths = '/ort/';
+
+// Disable JSEP (WebGPU/WebNN) backend — we only need plain wasm.
+// This prevents the runtime from trying to dynamically import jsep.mjs,
+// which breaks in environments with strict cross-origin security headers.
+ort.env.wasm.numThreads = 1; // safe default; threads need SharedArrayBuffer
+
 
 self.onmessage = async (e) => {
   const { imageData, width, height, modelType } = e.data;
@@ -24,7 +31,7 @@ self.onmessage = async (e) => {
     self.postMessage({ type: 'progress', progress: 10, message: `Loading model ${modelPath}...` });
 
     const session = await ort.InferenceSession.create(modelPath, {
-      executionProviders: ['wasm']
+      executionProviders: ['wasm'],
     });
 
     self.postMessage({ type: 'progress', progress: 25, message: 'Model loaded. Processing tiles...' });

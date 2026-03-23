@@ -90,5 +90,19 @@ Every time you `git push` to your main branch, Coolify will:
 
 ---
 
+## ⚙️ 6. ONNX Runtime WASM Files (self-hosted)
+
+The ONNX Runtime Web library requires a set of `.wasm` and `.mjs` files to be served alongside the app. In production (e.g. Coolify with nginx), loading these from a CDN fails with:
+
+```
+TypeError: error loading dynamically imported module: https://cdn.jsdelivr.net/.../ort-wasm-simd-threaded.jsep.mjs
+```
+
+This is caused by strict **COEP/CORP** headers that block cross-origin module loading.
+
+**The fix is already in place**: a `prebuild` npm script (`scripts/copy-ort-wasm.mjs`) automatically copies these files from `node_modules/onnxruntime-web/dist/` into `public/ort/` before every build, so they are served from the same origin as the app. No extra configuration is needed — `npm run build` handles everything.
+
+---
+
 > [!NOTE]
 > If you encounter issues with ONNX memory limits on a small VPS, consider enabling **Swap** memory on your server to prevent the build process from crashing.
