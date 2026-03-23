@@ -1,13 +1,17 @@
 import * as ort from 'onnxruntime-web/wasm';
 
-// Self-host WASM files from /ort/ to avoid cross-origin issues in production
-// (CDN loading fails when COEP/CORP headers are enforced by the server)
-ort.env.wasm.wasmPaths = '/ort/';
+// Use an explicit per-file wasmPaths map (object form) instead of a prefix string.
+// The .mjs glue file is mapped to a .js copy because some nginx configurations
+// (including Coolify's default) don't serve .mjs as text/javascript, which causes
+// the browser to reject the dynamic import(). .js is always served correctly.
+ort.env.wasm.wasmPaths = {
+  'ort-wasm-simd-threaded.mjs':          '/ort/ort-wasm-simd-threaded.js',
+  'ort-wasm-simd-threaded.wasm':         '/ort/ort-wasm-simd-threaded.wasm',
+  'ort-wasm-simd-threaded.asyncify.wasm':'/ort/ort-wasm-simd-threaded.asyncify.wasm',
+  'ort-wasm-simd-threaded.jsep.wasm':    '/ort/ort-wasm-simd-threaded.jsep.wasm',
+};
 
-// Disable JSEP (WebGPU/WebNN) backend — we only need plain wasm.
-// This prevents the runtime from trying to dynamically import jsep.mjs,
-// which breaks in environments with strict cross-origin security headers.
-ort.env.wasm.numThreads = 1; // safe default; threads need SharedArrayBuffer
+ort.env.wasm.numThreads = 1; // safe default; threads require SharedArrayBuffer
 
 
 self.onmessage = async (e) => {

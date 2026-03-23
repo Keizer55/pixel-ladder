@@ -25,7 +25,15 @@ function ortWasmDevServerPlugin() {
         const url = req.url ?? '';
         if (!url.startsWith('/ort/')) return next();
 
-        const filename = url.slice('/ort/'.length).split('?')[0];
+        let filename = url.slice('/ort/'.length).split('?')[0];
+
+        // We mapped .mjs to .js in our worker to fix Coolify/nginx MIME type
+        // issues in production. In dev, we map it back to the actual .mjs file
+        // that exists in node_modules.
+        if (filename.endsWith('.js')) {
+          filename = filename.replace('.js', '.mjs');
+        }
+
         const filePath = path.join(ORT_DIST, filename);
 
         if (!existsSync(filePath)) return next();
