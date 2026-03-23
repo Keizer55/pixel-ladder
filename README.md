@@ -56,12 +56,12 @@ So I built **Pixel Ladder**: a fully client-side tool that runs AI models direct
 
 Pixel Ladder uses **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** models by [Xintao Wang (xinntao)](https://github.com/xinntao), converted to ONNX format for browser inference.
 
-| Mode | Model | Source | Size |
-|---|---|---|---|
-| **x2** | `RealESRGAN_x2plus` | [tidus2102/Real-ESRGAN](https://huggingface.co/tidus2102/Real-ESRGAN) | 64 MB |
-| **x4** | `RealESRGAN_x4plus` (fp16) | [OwlMaster/AllFilesRope](https://huggingface.co/OwlMaster/AllFilesRope) | 32 MB |
-| **x4 Anime** | `RealESRGAN_x4plus_anime_6B` | [deepghs/imgutils-models](https://huggingface.co/deepghs/imgutils-models) | 18 MB |
-| **Pixel Art** | Nearest-neighbor (no model needed) | — | — |
+| Mode | Model | Size |
+|---|---|---|
+| **x2** | `RealESRGAN_x2plus` | 64 MB |
+| **x4** | `RealESRGAN_x4plus` | 32 MB |
+| **x4 Anime** | `RealESRGAN_x4plus_anime_6B` | 18 MB |
+| **Pixel Art** | Nearest-neighbor (no model needed) | — |
 
 > Models are not bundled in the repository due to their size. See [docs/deployment.md](./docs/deployment.md) for setup instructions.
 
