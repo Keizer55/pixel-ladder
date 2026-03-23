@@ -1,4 +1,4 @@
-import * as ort from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/wasm';
 
 // Self-host WASM files from /ort/ to avoid cross-origin issues in production
 // (CDN loading fails when COEP/CORP headers are enforced by the server)

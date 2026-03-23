@@ -20,16 +20,14 @@ const ROOT = resolve(__dirname, '..');
 const SRC_DIR = join(ROOT, 'node_modules', 'onnxruntime-web', 'dist');
 const DST_DIR = join(ROOT, 'public', 'ort');
 
-// Only the files actually needed by the plain `wasm` execution provider
+// Only the files needed by the `onnxruntime-web/wasm` execution provider.
+// The jsep/asyncify .mjs glue files are NOT needed (we use the wasm-only package).
 const FILES = [
   'ort-wasm-simd-threaded.wasm',
   'ort-wasm-simd-threaded.mjs',
   'ort-wasm-simd-threaded.asyncify.wasm',
-  'ort-wasm-simd-threaded.asyncify.mjs',
-  // jsep files are included so the runtime doesn't 404 if it probes for them,
-  // even though we disable the jsep backend explicitly in the worker.
+  // jsep .wasm included as a safety net so the runtime doesn't 404 if it probes
   'ort-wasm-simd-threaded.jsep.wasm',
-  'ort-wasm-simd-threaded.jsep.mjs',
 ];
 
 mkdirSync(DST_DIR, { recursive: true });
