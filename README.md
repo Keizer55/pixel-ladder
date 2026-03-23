@@ -52,11 +52,26 @@ So I built **Pixel Ladder**: a fully client-side tool that runs AI models direct
 
 ---
 
+## 🤖 AI Models
+
+Pixel Ladder uses **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** models by [Xintao Wang (xinntao)](https://github.com/xinntao), converted to ONNX format for browser inference.
+
+| Mode | Model | Source | Size |
+|---|---|---|---|
+| **x2** | `RealESRGAN_x2plus` | [tidus2102/Real-ESRGAN](https://huggingface.co/tidus2102/Real-ESRGAN) | 64 MB |
+| **x4** | `RealESRGAN_x4plus` (fp16) | [OwlMaster/AllFilesRope](https://huggingface.co/OwlMaster/AllFilesRope) | 32 MB |
+| **x4 Anime** | `RealESRGAN_x4plus_anime_6B` | [deepghs/imgutils-models](https://huggingface.co/deepghs/imgutils-models) | 18 MB |
+| **Pixel Art** | Nearest-neighbor (no model needed) | — | — |
+
+> Models are not bundled in the repository due to their size. See [docs/deployment.md](./docs/deployment.md) for setup instructions.
+
+---
+
 ## 🧠 Notes & Limitations
 
-- First use may take a moment while the browser downloads the ONNX model files and warms up.
-- Upscaling runs on your device (CPU/GPU/WebAssembly), so speed depends on your hardware and the image size.
-- Very large images can be slow and memory-heavy.
+- First use may take a moment while the browser downloads the ONNX model (~18–64 MB depending on the mode).
+- Upscaling runs on your device via WebAssembly — speed depends on your hardware and image size.
+- Large images are automatically processed in tiles (128 px with 8 px overlap) to prevent out-of-memory errors.
 
 ---
 

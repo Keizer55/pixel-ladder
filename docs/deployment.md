@@ -51,13 +51,26 @@ Coolify should automatically detect it as a **Vite / Static** project. If not, s
 
 ---
 
-## 🧠 3. Handling AI Models (.onnx)
+## 🧠 3. AI Model Files (.onnx)
 
-Since your models reside in the `public/models` folder:
-1.  **Include in Git**: If your models are small (quantized), you can push them directly to Git.
-2.  **Large Files**: If they are heavy, it is better to download them during the build process or mount a volume in Coolify to keep them persistent without bloating your repo.
+The app uses **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** models by [Xintao Wang (xinntao)](https://github.com/xinntao), converted to ONNX.  
+**These are NOT included in the Git repository** (too large). You must download them into `public/` before building.
 
-**Recommendation**: Store them in `/public/models/`. Vite will automatically include them in the `dist` folder during the build.
+| Filename | Size | Source |
+|---|---|---|
+| `RealESRGAN_x2plus.onnx` | 64 MB | [tidus2102/Real-ESRGAN](https://huggingface.co/tidus2102/Real-ESRGAN) |
+| `RealESRGAN_x4plus.onnx` | 32 MB (fp16) | [OwlMaster/AllFilesRope](https://huggingface.co/OwlMaster/AllFilesRope) |
+| `RealESRGAN_x4plus_anime_6B.onnx` | 18 MB | [deepghs/imgutils-models](https://huggingface.co/deepghs/imgutils-models) |
+
+```bash
+# Download all models to public/ (run from the project root)
+curl -L "https://huggingface.co/tidus2102/Real-ESRGAN/resolve/main/Real-ESRGAN_x2plus.onnx" -o public/RealESRGAN_x2plus.onnx
+curl -L "https://huggingface.co/OwlMaster/AllFilesRope/resolve/main/RealESRGAN_x4plus.fp16.onnx" -o public/RealESRGAN_x4plus.onnx
+curl -L "https://huggingface.co/deepghs/imgutils-models/resolve/main/real_esrgan/RealESRGAN_x4plus_anime_6B.onnx" -o public/RealESRGAN_x4plus_anime_6B.onnx
+```
+
+> [!IMPORTANT]
+> Models are served as static assets. Vite includes everything in `public/` in the `dist/` output automatically — no extra configuration needed.
 
 ---
 

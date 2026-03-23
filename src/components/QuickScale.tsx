@@ -132,7 +132,15 @@ export default function QuickScale() {
             }`}
           >
             <Zap className="w-6 h-6" />
-            {isProcessing ? `Processing... ${progress}%` : 'Upscale Now'}
+            {isProcessing ? (
+              <span className="flex items-center gap-3">
+                {/* Spinning ring */}
+                <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin inline-block" />
+                <span>{progress}%</span>
+                {/* Pulsing dot */}
+                <span className="w-2 h-2 rounded-full bg-current animate-pulse inline-block" />
+              </span>
+            ) : 'Upscale Now'}
           </button>
 
           {error && <p className="text-red-500 text-lg uppercase">{error}</p>}
@@ -140,21 +148,30 @@ export default function QuickScale() {
 
         {/* Right Column: Preview */}
         <div className="tech-panel-inner tech-panel-inner-corner p-4 flex flex-col">
-          <h3 className="text-sm mb-4 uppercase text-text tracking-wider flex justify-between items-center">
+          <h3 className="text-sm mb-4 uppercase text-text tracking-wider flex justify-between items-center flex-wrap gap-2">
             <span>Preview</span>
-            {result && (
-              <>
-                <span className="text-accent">{result.width}x{result.height}px</span>
+            <span className="flex items-center gap-3">
+              {/* Resolution badge */}
+              {result ? (
+                <span className="text-accent text-xs font-mono">
+                  {originalDims?.width} × {originalDims?.height} → {result.width} × {result.height} px
+                </span>
+              ) : originalDims ? (
+                <span className="text-muted text-xs font-mono">
+                  {originalDims.width} × {originalDims.height} px
+                </span>
+              ) : null}
+              {result && (
                 <a
                   href={result.url}
                   download={`upscaled-${modelType}.png`}
-                  className="flex items-center gap-2 tech-button-active px-4 py-2 uppercase rounded-sm text-sm ml-4"
+                  className="flex items-center gap-2 tech-button-active px-4 py-2 uppercase rounded-sm text-sm"
                 >
                   <Download className="w-4 h-4" />
                   Download
                 </a>
-              </>
-            )}
+              )}
+            </span>
           </h3>
           
           <div className="flex-1 bg-bg border border-muted/30 relative min-h-[300px] flex items-center justify-center overflow-hidden p-2">
@@ -170,30 +187,29 @@ export default function QuickScale() {
             {result ? (
               <div 
                 className="relative cursor-crosshair flex items-center justify-center h-[360px] max-w-[90%] bg-white rounded-sm drop-shadow-xl z-10 p-2"
-                onMouseMove={handleMouseMove}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
-                onTouchMove={handleTouchMove}
-                onTouchStart={() => setIsHovering(true)}
-                onTouchEnd={() => setIsHovering(false)}
               >
                 <img 
                   src={result.url} 
                   alt="Upscaled result" 
-                  className="max-w-full h-full object-contain block"
+                  className="max-w-full max-h-full block relative z-10"
                   draggable={false}
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={() => setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                  onTouchMove={handleTouchMove}
+                  onTouchStart={() => setIsHovering(true)}
+                  onTouchEnd={() => setIsHovering(false)}
                 />
                 
                 {/* Zoom Rectangle Overlay */}
                 {isHovering && (
                   <div 
-                    className="absolute border-2 border-accent bg-accent/20 pointer-events-none"
+                    className="absolute border-2 border-accent bg-accent/20 pointer-events-none z-20"
                     style={{
-                      left: `${zoomPos.x}%`,
-                      top: `${zoomPos.y}%`,
+                      left: `calc(${zoomPos.x}% - 10%)`,
+                      top: `calc(${zoomPos.y}% - 10%)`,
                       width: '20%',
                       height: '20%',
-                      transform: 'translate(-50%, -50%)',
                       boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)'
                     }}
                   />
@@ -204,7 +220,7 @@ export default function QuickScale() {
                 <img 
                   src={previewUrl} 
                   alt="Original preview" 
-                  className="max-w-full h-full object-contain block"
+                  className="max-w-full max-h-full block"
                 />
               </div>
             ) : (
@@ -224,7 +240,8 @@ export default function QuickScale() {
                     style={{
                       backgroundImage: `url(${previewUrl})`,
                       backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-                      backgroundSize: '800%'
+                      backgroundSize: '800%',
+                      imageRendering: 'pixelated'
                     }}
                   />
                 </div>
@@ -235,7 +252,8 @@ export default function QuickScale() {
                     style={{
                       backgroundImage: `url(${result.url})`,
                       backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-                      backgroundSize: '800%'
+                      backgroundSize: '800%',
+                      imageRendering: modelType === 'pixel-art' ? 'pixelated' : 'auto'
                     }}
                   />
                 </div>

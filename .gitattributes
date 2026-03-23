@@ -1,0 +1,11 @@
+# Treat ONNX model files as binary — prevents git from attempting text diffs
+*.onnx binary
+
+# Also mark other common large binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.wasm binary

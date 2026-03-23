@@ -102,37 +102,56 @@ export function useUpscaleEngine() {
         }
 
         if (workerRef.current) {
-          // Listen for messages from worker
+          // Output canvas is created lazily once we know final dimensions
+          let outCanvas: HTMLCanvasElement | null = null;
+          let outCtx: CanvasRenderingContext2D | null = null;
+
           workerRef.current.onmessage = (e) => {
             const data = e.data;
+
             if (data.type === 'progress') {
               setProgress(data.progress);
+
+            } else if (data.type === 'tile') {
+              // Lazily create the output canvas on first tile
+              if (!outCanvas) {
+                const outWidth  = img.width  * scale;
+                const outHeight = img.height * scale;
+                outCanvas = document.createElement('canvas');
+                outCanvas.width  = outWidth;
+                outCanvas.height = outHeight;
+                outCtx = outCanvas.getContext('2d');
+              }
+              if (!outCtx) return;
+
+              // Reconstruct ImageData from the transferred ArrayBuffer
+              const pixels = new Uint8ClampedArray(data.buffer);
+              const tileImageData = new ImageData(pixels, data.cropW, data.cropH);
+              outCtx.putImageData(tileImageData, data.destX, data.destY);
+
             } else if (data.type === 'success') {
               setProgress(100);
-              
-              // Convert returned ImageData to Data URL
-              const outCanvas = document.createElement('canvas');
-              outCanvas.width = data.width;
-              outCanvas.height = data.height;
-              const outCtx = outCanvas.getContext('2d');
-              if (outCtx) {
-                outCtx.putImageData(data.imageData, 0, 0);
-                const resultUrl = outCanvas.toDataURL('image/png');
-                URL.revokeObjectURL(objectUrl);
-                setIsProcessing(false);
-                resolve({
-                  imageUrl: resultUrl,
-                  width: data.width,
-                  height: data.height,
-                  timeMs: Math.round(performance.now() - startTime),
-                });
-              }
-            } else if (data.type === 'fallback') {
-              runCanvasScaling();
+              if (!outCanvas) return;
+              const resultUrl = outCanvas.toDataURL('image/png');
+              URL.revokeObjectURL(objectUrl);
+              setIsProcessing(false);
+              resolve({
+                imageUrl: resultUrl,
+                width: data.width,
+                height: data.height,
+                timeMs: Math.round(performance.now() - startTime),
+              });
+
+            } else if (data.type === 'error') {
+              URL.revokeObjectURL(objectUrl);
+              setIsProcessing(false);
+              const msg = `Model inference failed: ${data.message}`;
+              setError(msg);
+              reject(new Error(msg));
             }
           };
 
-          // Send data to worker
+          // Send image data to worker
           setProgress(5);
           workerRef.current.postMessage({
             imageData,
@@ -141,7 +160,11 @@ export function useUpscaleEngine() {
             modelType
           });
         } else {
-          runCanvasScaling();
+          URL.revokeObjectURL(objectUrl);
+          setIsProcessing(false);
+          const msg = 'ONNX worker not available';
+          setError(msg);
+          reject(new Error(msg));
         }
       };
 
