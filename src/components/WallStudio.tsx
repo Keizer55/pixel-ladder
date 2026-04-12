@@ -147,6 +147,23 @@ export default function WallStudio() {
     setIsCalibrating(false);
   };
 
+  const handleBgDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (isCalibrating) return;
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setBgImage(base64);
+        setCalibStart(null);
+        setCalibEnd(null);
+        startCalibration();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleWallClick = (e: React.MouseEvent) => {
     if (!isCalibrating || !wallRef.current) return;
     const rect = wallRef.current.getBoundingClientRect();
@@ -415,7 +432,7 @@ export default function WallStudio() {
                       <input type="number" value={wallHeight} onChange={(e) => setWallHeight(Number(e.target.value))} className="w-full bg-bg border border-muted/50 text-text p-1.5 text-xs font-mono rounded-sm focus:border-muted outline-none" />
                     </div>
                   </div>
-                  <button onClick={() => bgInputRef.current?.click()} className="w-full tech-button py-1.5 text-xs uppercase flex items-center justify-center gap-2 rounded-sm">
+                  <button onClick={() => bgInputRef.current?.click()} className="w-full tech-button px-3 py-1.5 text-xs uppercase flex items-center justify-center gap-2 rounded-sm">
                     <Plus className="w-3 h-3" /> Add Wall Photo
                   </button>
                 </>
@@ -508,8 +525,8 @@ export default function WallStudio() {
                             ))}
                           </div>
                         )}
-                        <button onClick={() => handleUploadClick(frame.id)} className="w-full tech-button py-1 text-[10px] uppercase flex items-center justify-center gap-1 rounded-sm mt-1">
-                          <Upload className="w-3 h-3" /> {frame.image ? 'Change Image' : 'Load Image'}
+                        <button onClick={() => handleUploadClick(frame.id)} className="w-full tech-button py-1 text-xs uppercase flex items-center justify-center gap-1 rounded-sm mt-1">
+                          <Upload className="w-3 h-3" /> Load Image
                         </button>
                       </div>
                     );
@@ -523,24 +540,26 @@ export default function WallStudio() {
 
           {/* Right Column: Wall Preview */}
           <div className="lg:col-span-3 tech-panel-inner tech-panel-inner-corner min-h-[500px] relative flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-3">
+            <div className="flex justify-between items-center flex-wrap gap-2 mb-4 p-4 pb-0">
               <h3 className="text-sm uppercase text-text tracking-wider">Wall Preview</h3>
               <button 
                 onClick={handleDownloadPreview}
-                className="tech-button py-1 px-3 text-[10px] uppercase flex items-center gap-1 rounded-sm"
+                className="tech-button px-3 py-1.5 text-xs uppercase flex items-center gap-2 rounded-sm"
               >
                 <Download className="w-3 h-3" /> Download Preview
               </button>
             </div>
             
-            <div className="flex-1 relative flex items-center justify-center p-4" ref={wrapperRef}>
+            <div className="flex-1 relative flex items-center justify-center p-4 pt-0" ref={wrapperRef}>
               {isCalibrating && <div className="absolute top-2 left-1/2 -translate-x-1/2 text-accent text-xs uppercase animate-pulse z-10 bg-bg/80 px-2 py-1 border border-accent/50 rounded-sm">Click two points to calibrate scale</div>}
 
               <div 
                 ref={wallRef}
                 onClick={handleWallClick}
                 onMouseMove={handleWallMouseMove}
-                className={`relative shadow-2xl overflow-hidden ${isCalibrating ? 'cursor-crosshair' : ''} ${!bgImage ? 'bg-panel border border-muted/50 dot-grid' : ''}`}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleBgDrop}
+                className={`relative overflow-hidden ${isCalibrating ? 'cursor-crosshair' : ''} ${!bgImage ? 'bg-bg border border-muted/30 dot-grid' : ''}`}
                 style={{
                   width: virtualWallWidth * scale,
                   height: virtualWallHeight * scale,
@@ -548,6 +567,14 @@ export default function WallStudio() {
               >
                 {bgImage && (
                   <img src={bgImage} alt="Background wall for virtual print layout" onLoad={handleImageLoad} className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
+                )}
+
+                {!bgImage && frames.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-center p-4">
+                    <p className="text-muted text-xs uppercase bg-bg/50 backdrop-blur-sm px-4 py-2 border border-muted/30 rounded-sm">
+                      Configure wall dimensions and add frames
+                    </p>
+                  </div>
                 )}
 
                 {/* Calibration Line Overlay */}

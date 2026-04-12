@@ -95,6 +95,19 @@ export default function PrintStudio() {
     }
   };
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setCrop(undefined);
+      setImgSize(null);
+      setIsExactMode(false);
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''));
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { naturalWidth, naturalHeight } = e.currentTarget;
     setImgSize({ w: naturalWidth, h: naturalHeight });
@@ -289,7 +302,12 @@ export default function PrintStudio() {
               />
             </div>
 
-            <div className="flex-1 tech-panel-inner tech-panel-inner-corner min-h-[300px] flex items-center justify-center overflow-hidden relative dot-grid">
+            <div 
+              className="flex-1 bg-bg border border-muted/30 relative min-h-[300px] flex items-center justify-center overflow-hidden p-2"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+            >
+              <div className="absolute inset-0 dot-grid pointer-events-none"></div>
               {isTooSmall && (
                 <div className="absolute top-2 right-2 z-10 bg-red-900/40 border border-red-500/50 text-red-500 text-[10px] uppercase px-2 py-1 rounded-sm shadow-md animate-pulse">
                   Image smaller than required print {dimensions?.widthPx}x{dimensions?.heightPx}px
@@ -297,9 +315,17 @@ export default function PrintStudio() {
               )}
               
               {!imgSrc ? (
-                <p className="text-muted uppercase text-center p-4 text-xs">
-                  Load an image to crop it to the exact aspect ratio required for printing.
-                </p>
+                <div 
+                  className="flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:bg-muted/10 transition-colors w-full h-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-12 h-12 text-muted mx-auto mb-4" />
+                  <p className="text-xl uppercase mb-2">Click or Drag Image Here</p>
+                  <p className="text-xs text-muted uppercase mb-4 max-w-sm">Load an image to crop it to the exact aspect ratio required for printing.</p>
+                  <button className="tech-button px-3 py-1.5 uppercase text-xs flex items-center gap-2 rounded-sm" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                    <Upload className="w-3 h-3" /> Load Image
+                  </button>
+                </div>
               ) : (
                 <ReactCrop
                   crop={crop}
