@@ -387,14 +387,13 @@ export default function WallStudio() {
   return (
     <div className="flex flex-col gap-6">
       <div className="tech-panel-inner tech-panel-inner-corner p-4 md:p-6">
-        <h2 className="text-xl md:text-2xl mb-6 uppercase flex items-center gap-3 text-text font-light tracking-wider">
-          <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6 text-accent" />
-          Wall Setup Studio
-        </h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Controls */}
           <div className="flex flex-col gap-4 lg:col-span-1">
+            <h2 className="text-xl md:text-2xl uppercase flex items-center gap-3 text-text font-light tracking-wider">
+              <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6 text-accent" />
+              Wall Setup Studio
+            </h2>
             
             {/* Global Actions */}
             <div className="tech-panel-inner tech-panel-inner-corner p-3">
@@ -539,7 +538,7 @@ export default function WallStudio() {
           </div>
 
           {/* Right Column: Wall Preview */}
-          <div className="lg:col-span-3 tech-panel-inner tech-panel-inner-corner min-h-[500px] relative flex flex-col overflow-hidden">
+          <div className="lg:col-span-2 tech-panel-inner tech-panel-inner-corner min-h-[500px] relative flex flex-col overflow-hidden">
             <div className="flex justify-between items-center flex-wrap gap-2 mb-4 p-4 pb-0">
               <h3 className="text-sm uppercase text-text tracking-wider">Wall Preview</h3>
               <button 
