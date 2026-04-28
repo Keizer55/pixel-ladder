@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getPrintDimensions, PrintDimensions } from '../lib/PrintCalculator';
-import { Printer, Image as ImageIcon, Upload, Scissors, Download, Zap } from 'lucide-react';
+import { Printer, Image as ImageIcon, Upload, Scissors, Download, Zap, Info } from 'lucide-react';
 import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -48,6 +48,15 @@ export default function PrintStudio() {
   }, [width, height, unit, dpi]);
 
   const aspect = dimensions ? dimensions.widthPx / dimensions.heightPx : 1;
+
+  const formatAspectRatio = (ratio: number) => {
+    if (!Number.isFinite(ratio) || ratio <= 0) return '—';
+    const rounded = Math.round(ratio);
+    if (Math.abs(ratio - rounded) < 0.005) {
+      return `${rounded}:1`;
+    }
+    return `${ratio.toFixed(2)}:1.00`;
+  };
 
   // Update crop when aspect ratio, exact mode, or image changes
   useEffect(() => {
@@ -115,6 +124,23 @@ export default function PrintStudio() {
 
   const wrapperW = isExactMode && dimensions && imgSize ? Math.max(dimensions.widthPx, imgSize.w) : (imgSize?.w || 1);
   const wrapperH = isExactMode && dimensions && imgSize ? Math.max(dimensions.heightPx, imgSize.h) : (imgSize?.h || 1);
+
+  const cropPixelSize = (() => {
+    if (!completedCrop || !imgRef.current || !completedCrop.width || !completedCrop.height) return null;
+    if (isExactMode && dimensions) {
+      return { w: dimensions.widthPx, h: dimensions.heightPx };
+    }
+    const image = imgRef.current;
+    if (!image.width || !image.height) return null;
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    return {
+      w: Math.max(1, Math.round(completedCrop.width * scaleX)),
+      h: Math.max(1, Math.round(completedCrop.height * scaleY))
+    };
+  })();
+
+  const isCropTooSmall = !!(dimensions && cropPixelSize && (cropPixelSize.w < dimensions.widthPx || cropPixelSize.h < dimensions.heightPx));
 
   const handleDownloadCrop = () => {
     if (!completedCrop || !imgRef.current || !completedCrop.width || !completedCrop.height) return;
@@ -238,17 +264,39 @@ export default function PrintStudio() {
               <div className="tech-panel-inner tech-panel-inner-corner p-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-muted to-transparent opacity-50"></div>
                 
-                <h3 className="text-sm uppercase text-text mb-2 flex items-center gap-2 tracking-wider">
-                  <ImageIcon className="w-4 h-4 text-muted" />
-                  Required Pixels
-                </h3>
-                
-                <div className="text-2xl md:text-3xl tracking-wider py-2 font-mono">
-                  {dimensions.widthPx} <span className="text-muted text-xl">x</span> {dimensions.heightPx} <span className="text-sm text-muted">PX</span>
-                </div>
-                
-                <div className="mt-2 text-muted uppercase text-xs">
-                  <p>Aspect Ratio: {aspect.toFixed(2)}:1</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="text-muted uppercase text-xs leading-relaxed flex flex-col justify-start">
+                    <h3 className="text-sm uppercase text-text mb-2 flex items-center gap-2 tracking-wider">
+                      <ImageIcon className="w-4 h-4 text-muted" />
+                      Required Pixels
+                    </h3>
+                    <div><span className="opacity-60">Target Print Size:</span> <span className="text-text tracking-wider">{width} x {height} {unit}</span></div>
+                    <div className="mt-2">
+                      <div className="opacity-60">Resolution ({dpi} DPI):</div> 
+                      <div className="text-text text-base md:text-lg font-mono tracking-wider pl-4 mt-1">
+                        {dimensions.widthPx} <span className="opacity-50 mx-1">x</span> {dimensions.heightPx} <span className="text-[10px] opacity-70 ml-1">PX</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-muted uppercase text-xs leading-relaxed md:text-right flex flex-col justify-start">
+                    <h3 className="text-sm uppercase text-text mb-2 flex items-center md:justify-end gap-2 tracking-wider">
+                      <Info className="w-4 h-4 text-muted" />
+                      Image Details
+                    </h3>
+                    <div><span className="opacity-60">Aspect Ratio:</span> <span className="text-text">{formatAspectRatio(aspect)}</span></div>
+                    {imgSize && (
+                      <div><span className="opacity-60">Image Size:</span> <span className="text-text">{imgSize.w} x {imgSize.h} px</span></div>
+                    )}
+                    {cropPixelSize && (
+                      <div><span className="opacity-60">Crop Size:</span> <span className="text-text">{cropPixelSize.w} x {cropPixelSize.h} px</span></div>
+                    )}
+                    {isCropTooSmall && (
+                      <div className="text-red-500 mt-1 text-[10px] normal-case leading-tight max-w-[180px] md:ml-auto">
+                        Warning: Low resolution, use the Quick Scale
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
