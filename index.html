@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
     <link rel="icon" href="/favicon/favicon.ico" type="image/x-icon" />
     <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon/favicon-96x96.png" type="image/png" sizes="96x96" />
@@ -19,6 +19,7 @@
 
     <!-- Primary SEO -->
     <meta name="description" content="Pixel Ladder is a free, browser-based AI tool to upscale, crop, and prepare images for print. No uploads, no servers — your images never leave your device." />
+    <meta name="keywords" content="AI image upscaler, free image upscaler, print preparation tool, DPI calculator, Real-ESRGAN, browser-based AI, image crop, wall art planner, no upload image tool" />
     <meta name="author" content="Pixel Ladder" />
     <meta name="robots" content="index, follow" />
 
@@ -31,16 +32,24 @@
       "description": "Free browser-based AI tool to upscale, crop, and prepare images for print. 100% local processing, no uploads required.",
       "applicationCategory": "MultimediaApplication",
       "operatingSystem": "All",
+      "browserRequirements": "Requires a modern browser with WebAssembly support",
+      "screenshot": "https://www.pixel-ladder.zikzero.com/pixel-ladder-demo.gif",
+      "creator": {
+        "@type": "Person",
+        "name": "Álvaro Fernández"
+      },
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD"
       },
       "featureList": [
-        "AI Image Upscaling",
-        "Local in-browser processing",
-        "Print preparation & DPI calculation",
-        "Private and secure"
+        "AI Image Upscaling (Real-ESRGAN)",
+        "Print DPI Calculator",
+        "Crop Studio",
+        "Gallery Wall Layout Planner",
+        "100% local processing — no uploads",
+        "Privacy-first: images never leave your device"
       ]
     }
     </script>
@@ -62,6 +71,15 @@
     <meta name="twitter:image" content="https://www.pixel-ladder.zikzero.com/cerdito_1.jpg" />
     <meta name="twitter:image:alt" content="Pixel Ladder interface for free AI image upscaling, cropping, and print preparation" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.clarity.ms https://scripts.clarity.ms; connect-src 'self' https://www.clarity.ms https://*.clarity.ms blob:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; worker-src 'self' blob:; child-src 'self' blob:; upgrade-insecure-requests" />
+
+    <!-- Microsoft Clarity — initializes on every page load; data sent only after consent is granted -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window,document,"clarity","script","vuotlcahms");
+    </script>
   </head>
   <body>
     <div id="root">
