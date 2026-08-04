@@ -33,11 +33,19 @@ export default function Layout({ children }: LayoutProps) {
             <div className="absolute top-4 left-4 z-40">
               <div className="w-16 h-16 md:w-32 md:h-32 border border-muted bg-panel p-1 overflow-hidden rounded-sm">
                 <img 
-                  src="/cerdito_1.jpg" 
+                  src="/logo-128.webp"
+                  srcSet="/logo-128.webp 1x, /logo-256.webp 2x"
                   alt="Pixel Ladder Logo" 
                   className="w-full h-full object-cover relative z-10"
                   onError={(e) => {
-                    e.currentTarget.src = "/pig-logo.svg";
+                    const el = e.currentTarget;
+                    if (el.src.includes('logo-256')) {
+                      el.src = '/logo-128.png';
+                    } else if (el.src.includes('logo-128')) {
+                      el.src = '/cerdito_1.jpg';
+                    } else {
+                      el.src = '/pig-logo.svg';
+                    }
                   }}
                 />
               </div>
