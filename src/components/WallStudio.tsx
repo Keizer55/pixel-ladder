@@ -1,17 +1,80 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { motion, useMotionValue } from 'motion/react';
 import { getPrintDimensions } from '../lib/PrintCalculator';
-import { LayoutDashboard, Plus, Trash2, Upload, Image as ImageIcon, Ruler, X, Download, Save, UploadCloud, Zap, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Plus, Trash2, Upload, Image as ImageIcon, Ruler, X, Download, Save, UploadCloud, Zap, AlertTriangle, Pencil, Check } from 'lucide-react';
 
 interface FrameData {
   id: string;
   width: number;
   height: number;
   image: string | null;
-  x?: number;
-  y?: number;
+  // Position of the frame's top-left corner, in wall units (cm/in) from the
+  // wall's top-left corner. Scale-independent so it survives resize + reload.
+  unitX?: number;
+  unitY?: number;
   imageWidth?: number;
   imageHeight?: number;
+}
+
+const CONFIG_VERSION = 2;
+
+let frameCounter = 0;
+const createFrameId = () => `frame-${Date.now().toString(36)}-${(frameCounter++).toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+interface WallFrameProps {
+  // The project has no @types/react installed, so JSX does not contribute the
+  // usual `key` attribute to component props — declare it explicitly.
+  key?: string;
+  frame: FrameData;
+  index: number;
+  unitX: number;
+  unitY: number;
+  frameScale: number;
+  isCalibrating: boolean;
+  constraintsRef: React.RefObject<HTMLDivElement | null>;
+  onDragEnd: (id: string) => void;
+}
+
+// A draggable frame. Its translate is driven by motion values so that a change
+// in scale (window resize, wall resize) or a freshly loaded config repositions
+// it, while dragging still writes to the very same values.
+function WallFrame({ frame, index, unitX, unitY, frameScale, isCalibrating, constraintsRef, onDragEnd }: WallFrameProps) {
+  const x = useMotionValue(unitX * frameScale);
+  const y = useMotionValue(unitY * frameScale);
+
+  useLayoutEffect(() => {
+    x.set(unitX * frameScale);
+    y.set(unitY * frameScale);
+  }, [unitX, unitY, frameScale, x, y]);
+
+  return (
+    <motion.div
+      data-frame-id={frame.id}
+      drag={!isCalibrating}
+      dragMomentum={false}
+      dragConstraints={constraintsRef}
+      onDragEnd={() => onDragEnd(frame.id)}
+      className={`absolute bg-bg border border-muted shadow-lg flex items-center justify-center overflow-hidden ${!isCalibrating ? 'cursor-move' : ''} group`}
+      style={{
+        x,
+        y,
+        top: 0,
+        left: 0,
+        width: frame.width * frameScale,
+        height: frame.height * frameScale,
+      }}
+      whileHover={!isCalibrating ? { scale: 1.02, zIndex: 50 } : {}}
+      whileDrag={!isCalibrating ? { scale: 1.05, zIndex: 50, boxShadow: "0px 10px 20px rgba(0,0,0,0.3)" } : {}}
+    >
+      {frame.image ? (
+        <img src={frame.image} alt={`Virtual artwork frame ${index + 1} layout`} className="w-full h-full object-cover pointer-events-none" />
+      ) : (
+        <div className="text-center p-1 pointer-events-none">
+          <p className="text-accent text-[10px] md:text-xs">{frame.width}x{frame.height}</p>
+        </div>
+      )}
+    </motion.div>
+  );
 }
 
 export default function WallStudio() {
@@ -31,6 +94,11 @@ export default function WallStudio() {
   const bgInputRef = useRef<HTMLInputElement>(null);
   const configInputRef = useRef<HTMLInputElement>(null);
   const [activeFrameId, setActiveFrameId] = useState<string | null>(null);
+
+  // Inline frame size editing
+  const [editingFrameId, setEditingFrameId] = useState<string | null>(null);
+  const [editWidth, setEditWidth] = useState<number>(0);
+  const [editHeight, setEditHeight] = useState<number>(0);
 
   // Background & Calibration State
   const [bgImage, setBgImage] = useState<string | null>(null);
@@ -81,16 +149,42 @@ export default function WallStudio() {
     frameScale = (virtualWallWidth * scale) / wallWidth;
   }
 
+  // Size of the wall expressed in real-world units, used to place frames
+  const wallUnitsWidth = frameScale > 0 ? (virtualWallWidth * scale) / frameScale : 0;
+  const wallUnitsHeight = frameScale > 0 ? (virtualWallHeight * scale) / frameScale : 0;
+
+  // Fallback placement for frames that have no stored position yet
+  const defaultUnitPos = (frame: FrameData, index: number) => ({
+    x: Math.max(0, wallUnitsWidth / 2 - frame.width / 2 + index * 5),
+    y: Math.max(0, wallUnitsHeight / 2 - frame.height / 2 + index * 5),
+  });
+
   const handleAddFrame = () => {
     if (newFrameWidth > 0 && newFrameHeight > 0) {
-      setFrames([
-        ...frames,
-        { id: Math.random().toString(36).substring(7), width: newFrameWidth, height: newFrameHeight, image: null, x: undefined, y: undefined, imageWidth: undefined, imageHeight: undefined }
-      ]);
+      const frame: FrameData = { id: createFrameId(), width: newFrameWidth, height: newFrameHeight, image: null, imageWidth: undefined, imageHeight: undefined };
+      const pos = defaultUnitPos(frame, frames.length);
+      setFrames([...frames, { ...frame, unitX: pos.x, unitY: pos.y }]);
     }
   };
 
-  const handleRemoveFrame = (id: string) => setFrames(frames.filter(f => f.id !== id));
+  const handleRemoveFrame = (id: string) => {
+    setFrames(frames.filter(f => f.id !== id));
+    if (editingFrameId === id) setEditingFrameId(null);
+  };
+
+  const startEditFrame = (frame: FrameData) => {
+    setEditingFrameId(frame.id);
+    setEditWidth(frame.width);
+    setEditHeight(frame.height);
+  };
+
+  const commitEditFrame = () => {
+    if (!editingFrameId) return;
+    if (editWidth > 0 && editHeight > 0) {
+      setFrames(prev => prev.map(f => f.id === editingFrameId ? { ...f, width: editWidth, height: editHeight } : f));
+    }
+    setEditingFrameId(null);
+  };
 
   const handleUploadClick = (id: string) => {
     setActiveFrameId(id);
@@ -328,31 +422,44 @@ export default function WallStudio() {
     }
   };
 
-  // Collect current frame positions from the DOM
-  const getFramePositions = (): FrameData[] => {
-    return frames.map(frame => {
-      const el = document.querySelector(`[data-frame-id="${frame.id}"]`) as HTMLElement | null;
-      if (el) {
-        const style = window.getComputedStyle(el);
-        const transform = style.transform;
-        let tx = 0, ty = 0;
-        if (transform && transform !== 'none') {
-          const match = transform.match(/matrix\(([^)]+)\)/);
-          if (match) {
-            const values = match[1].split(',').map(v => parseFloat(v.trim()));
-            tx = values[4] || 0;
-            ty = values[5] || 0;
-          }
-        }
-        return { ...frame, x: tx, y: ty };
+  // Read a frame's live translate from the DOM and convert it to wall units.
+  // The frames are laid out at left/top 0, so the translate *is* the position.
+  // Reading the matrix (rather than the bounding rect) keeps this immune to the
+  // hover/drag scale effects.
+  const readFrameUnitPos = (id: string): { unitX: number; unitY: number } | null => {
+    if (frameScale <= 0) return null;
+    const el = wallRef.current?.querySelector(`[data-frame-id="${id}"]`) as HTMLElement | null;
+    if (!el) return null;
+    const transform = window.getComputedStyle(el).transform;
+    let tx = 0, ty = 0;
+    if (transform && transform !== 'none') {
+      const match = transform.match(/matrix\(([^)]+)\)/);
+      if (match) {
+        const values = match[1].split(',').map(v => parseFloat(v.trim()));
+        tx = values[4] || 0;
+        ty = values[5] || 0;
       }
-      return frame;
-    });
+    }
+    return { unitX: tx / frameScale, unitY: ty / frameScale };
+  };
+
+  // Persist the position back into state once a drag settles, so it survives
+  // resizes, re-scaling and saving.
+  const commitFramePosition = (id: string) => {
+    const pos = readFrameUnitPos(id);
+    if (!pos) return;
+    setFrames(prev => prev.map(f => f.id === id ? { ...f, ...pos } : f));
   };
 
   const handleSaveConfig = () => {
-    const framesWithPositions = getFramePositions();
-    const config = { unit, wallWidth, wallHeight, frames: framesWithPositions, bgImage, bgSize, calibStart, calibEnd, calibLength };
+    const framesWithPositions = frames.map((frame, index) => {
+      const pos = readFrameUnitPos(frame.id);
+      if (pos) return { ...frame, ...pos };
+      if (frame.unitX !== undefined && frame.unitY !== undefined) return frame;
+      const fallback = defaultUnitPos(frame, index);
+      return { ...frame, unitX: fallback.x, unitY: fallback.y };
+    });
+    const config = { version: CONFIG_VERSION, unit, wallWidth, wallHeight, frames: framesWithPositions, bgImage, bgSize, calibStart, calibEnd, calibLength };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config));
     const link = document.createElement('a');
     link.download = "wall-config.json";
@@ -367,10 +474,38 @@ export default function WallStudio() {
     reader.onload = (event) => {
       try {
         const config = JSON.parse(event.target?.result as string);
+
+        // Any work in progress is replaced by the loaded config, so drop the
+        // transient UI state first — otherwise calibration mode (which blocks
+        // dragging) or a pending image upload would leak into the new layout.
+        setIsCalibrating(false);
+        setCalibStep(0);
+        setActiveFrameId(null);
+        setEditingFrameId(null);
+
         if (config.unit) setUnit(config.unit);
         if (config.wallWidth) setWallWidth(config.wallWidth);
         if (config.wallHeight) setWallHeight(config.wallHeight);
-        if (config.frames) setFrames(config.frames);
+
+        if (Array.isArray(config.frames)) {
+          // Positions are only meaningful from v2 onwards (older files stored
+          // raw pixel offsets tied to the window size they were saved at).
+          const positioned = config.version >= CONFIG_VERSION;
+          // Always mint fresh ids: the loaded ones may collide with the frames
+          // currently on the wall, which would make React reuse the existing
+          // nodes and silently keep their old size and position.
+          setFrames(config.frames.map((f: FrameData) => ({
+            id: createFrameId(),
+            width: Number(f.width) || 0,
+            height: Number(f.height) || 0,
+            image: f.image ?? null,
+            imageWidth: f.imageWidth,
+            imageHeight: f.imageHeight,
+            unitX: positioned ? f.unitX : undefined,
+            unitY: positioned ? f.unitY : undefined,
+          })));
+        }
+
         if (config.bgImage !== undefined) setBgImage(config.bgImage);
         if (config.bgSize !== undefined) setBgSize(config.bgSize);
         if (config.calibStart !== undefined) setCalibStart(config.calibStart);
@@ -503,12 +638,50 @@ export default function WallStudio() {
                     }
                     return (
                       <div key={frame.id} className="bg-bg border border-muted/50 p-2 relative group flex flex-col gap-1.5 rounded-sm">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center gap-2">
                           <span className="text-text uppercase text-xs">
                             Frame {index + 1} <span className="text-muted">({frame.width}x{frame.height}{unit})</span>
                           </span>
-                          <button onClick={() => handleRemoveFrame(frame.id)} aria-label="Remove layout frame" className="text-muted hover:text-red-500 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => editingFrameId === frame.id ? setEditingFrameId(null) : startEditFrame(frame)}
+                              aria-label={`Edit size of frame ${index + 1}`}
+                              title="Edit size"
+                              className={`transition-colors ${editingFrameId === frame.id ? 'text-accent' : 'text-muted hover:text-accent'}`}
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button onClick={() => handleRemoveFrame(frame.id)} aria-label="Remove layout frame" className="text-muted hover:text-red-500 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                          </div>
                         </div>
+                        {editingFrameId === frame.id && (
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="number"
+                              value={editWidth}
+                              autoFocus
+                              onChange={(e) => setEditWidth(Number(e.target.value))}
+                              onKeyDown={(e) => { if (e.key === 'Enter') commitEditFrame(); if (e.key === 'Escape') setEditingFrameId(null); }}
+                              aria-label="Frame width"
+                              className="w-full bg-bg border border-muted/50 text-text p-1 text-xs font-mono rounded-sm focus:border-muted outline-none"
+                            />
+                            <span className="text-muted text-xs">x</span>
+                            <input
+                              type="number"
+                              value={editHeight}
+                              onChange={(e) => setEditHeight(Number(e.target.value))}
+                              onKeyDown={(e) => { if (e.key === 'Enter') commitEditFrame(); if (e.key === 'Escape') setEditingFrameId(null); }}
+                              aria-label="Frame height"
+                              className="w-full bg-bg border border-muted/50 text-text p-1 text-xs font-mono rounded-sm focus:border-muted outline-none"
+                            />
+                            <button onClick={commitEditFrame} aria-label="Save frame size" title="Save size" className="tech-button-active px-2 py-1 rounded-sm flex items-center justify-center">
+                              <Check className="w-3 h-3" />
+                            </button>
+                            <button onClick={() => setEditingFrameId(null)} aria-label="Cancel editing frame size" title="Cancel" className="tech-button px-2 py-1 rounded-sm flex items-center justify-center">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center text-[10px]">
                           <span className="text-muted flex items-center gap-1">
                             <ImageIcon className="w-3 h-3" /> {dims.widthPx}x{dims.heightPx}px @300DPI
@@ -594,35 +767,19 @@ export default function WallStudio() {
                 )}
 
                 {frames.map((frame, index) => {
-                  // Default center position with offset per index
-                  const defaultTop = (virtualWallHeight * scale) / 2 - (frame.height * frameScale) / 2 + (index * 10);
-                  const defaultLeft = (virtualWallWidth * scale) / 2 - (frame.width * frameScale) / 2 + (index * 10);
+                  const fallback = defaultUnitPos(frame, index);
                   return (
-                    <motion.div
+                    <WallFrame
                       key={frame.id}
-                      data-frame-id={frame.id}
-                      drag={!isCalibrating}
-                      dragMomentum={false}
-                      dragConstraints={wallRef}
-                      initial={frame.x !== undefined && frame.y !== undefined ? { x: frame.x, y: frame.y } : undefined}
-                      className={`absolute bg-bg border border-muted shadow-lg flex items-center justify-center overflow-hidden ${!isCalibrating ? 'cursor-move' : ''} group`}
-                      style={{
-                        width: frame.width * frameScale,
-                        height: frame.height * frameScale,
-                        top: defaultTop,
-                        left: defaultLeft,
-                      }}
-                      whileHover={!isCalibrating ? { scale: 1.02, zIndex: 50 } : {}}
-                      whileDrag={!isCalibrating ? { scale: 1.05, zIndex: 50, boxShadow: "0px 10px 20px rgba(0,0,0,0.3)" } : {}}
-                    >
-                      {frame.image ? (
-                        <img src={frame.image} alt={`Virtual artwork frame ${index + 1} layout`} className="w-full h-full object-cover pointer-events-none" />
-                      ) : (
-                        <div className="text-center p-1 pointer-events-none">
-                          <p className="text-accent text-[10px] md:text-xs">{frame.width}x{frame.height}</p>
-                        </div>
-                      )}
-                    </motion.div>
+                      frame={frame}
+                      index={index}
+                      unitX={frame.unitX ?? fallback.x}
+                      unitY={frame.unitY ?? fallback.y}
+                      frameScale={frameScale}
+                      isCalibrating={isCalibrating}
+                      constraintsRef={wallRef}
+                      onDragEnd={commitFramePosition}
+                    />
                   );
                 })}
               </div>
