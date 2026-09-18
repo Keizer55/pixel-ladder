@@ -111,11 +111,73 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## 🏗️ Architecture and Processes
+
+Two diagrams, one per question that actually gets asked about this project.
+
+**The source is the typed JSON in `docs/diagrams/`** — that is what a pull
+request actually reviews. Rendering it with
+[archify](https://github.com/tt-a1i/archify) produces a self-contained
+interactive page: click a node to trace what reaches it, step through the guided
+views one story at a time, switch light and dark, export an image.
+
+Those pages are committed too. A clone gets them without installing anything,
+and the last rendered state is always on hand to compare against when the next
+change lands. GitHub will not render HTML, so open them from a clone; the images
+below are the captures it can show.
+
+Both the pages and the captures come in light and dark. A page opens dark unless
+your system asks for light — `?theme=dark` on the URL forces it either way — and
+the images below follow the theme you are reading GitHub in.
+
+> **If the code changes, the diagrams do not follow on their own.**
+> A renamed component, a new studio, a changed worker protocol means editing the
+> matching JSON and re-rendering. The module map is the one that fails loudly: it
+> pins its file references to a commit and verifies them against git, so a path
+> that no longer exists stops the render. The pipeline describes behaviour, and
+> only a person can tell when that has drifted.
+>
+> How to render them, capture the images, and what is committed:
+> [docs/diagrams/README.md](docs/diagrams/README.md).
+
+### The module map — what talks to what
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/architecture-dark.png">
+  <img alt="Module map" src="docs/assets/architecture.png">
+</picture>
+
+Interactive: `docs/diagrams/architecture.html` (open it from a clone) · source: [`architecture.architecture.json`](docs/diagrams/architecture.architecture.json)
+
+Every box carries a `SRC` badge linking to the file it stands for, pinned at a
+commit and verified against git when the page is rendered — a path that no
+longer exists fails the render instead of shipping a dead link. The three
+guided views are *where inference runs*, *the three studios*, and *the only
+network calls*.
+
+### The upscale pipeline — one image, tile by tile
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/upscale-pipeline-dark.png">
+  <img alt="The upscale pipeline" src="docs/assets/upscale-pipeline.png">
+</picture>
+
+Interactive: `docs/diagrams/upscale-pipeline.html` (open it from a clone) · source: [`upscale-pipeline.dataflow.json`](docs/diagrams/upscale-pipeline.dataflow.json)
+
+A dropped image never leaves the canvas: it is split into tiles, sent to a Web
+Worker one tile at a time, run through Real-ESRGAN in WASM, and stitched back
+with the overlap trimmed off. Nothing here is a network call — the only two
+things this app ever fetches are the model weights (once, lazily) and Microsoft
+Clarity (and only after the cookie banner is accepted).
+
+---
+
 ## 📚 Documentation
 
 More detailed docs are available in the [`docs/`](./docs) folder:
 
 - [Architecture](./docs/architecture.md)
+- [Diagrams — rendering and updating them](./docs/diagrams/README.md)
 - [Running Locally](./docs/running-locally.md)
 - [Usage Guide](./docs/usage.md)
 - [Philosophy](./docs/philosophy.md)

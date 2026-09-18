@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "One image, tile by tile",
+    "locale": "en",
+    "output": "upscale-pipeline.html",
+    "quality_profile": "showcase",
+    "viewBox": [1068, 480],
+    "views": [
+      {
+        "id": "where-the-work-happens",
+        "label": "Where the work happens",
+        "focus": ["worker", "model"],
+        "note": "Tiled inference is the only slow step, and it runs off the main thread in a Web Worker."
+      },
+      {
+        "id": "nothing-leaves-the-browser",
+        "label": "Nothing leaves the browser",
+        "focus": ["source", "canvasIn", "canvasOut", "download"],
+        "note": "Every stage is a local canvas or a local file. No stage here is a network call."
+      },
+      {
+        "id": "the-escape-hatch",
+        "label": "The escape hatch",
+        "focus": ["canvasIn", "canvasOut"],
+        "note": "Pixel Art mode skips the worker and the model: nearest-neighbor scaling, same canvas."
+      }
+    ]
+  },
+  "stages": [
+    { "label": "Source" },
+    { "label": "Load" },
+    { "label": "Infer" },
+    { "label": "Reassemble" },
+    { "label": "Deliver" }
+  ],
+  "nodes": [
+    {
+      "id": "source", "type": "external", "label": "Original image", "sublabel": "dropped or picked by the user",
+      "stage": 0, "row": 0, "tag": "never uploaded", "width": 148, "height": 60
+    },
+    {
+      "id": "canvasIn", "type": "frontend", "label": "Canvas ImageData", "sublabel": "drawImage → getImageData",
+      "stage": 1, "row": 0, "tag": "main thread", "width": 152, "height": 60
+    },
+    {
+      "id": "worker", "type": "messagebus", "label": "onnx-worker.js", "sublabel": "one tile at a time",
+      "stage": 2, "row": 0, "tag": "off the UI thread", "width": 148, "height": 60
+    },
+    {
+      "id": "model", "type": "external", "label": "Real-ESRGAN (ONNX)", "sublabel": "18–64MB, loaded once",
+      "stage": 2, "row": 1, "tag": "WASM execution", "width": 160, "height": 60
+    },
+    {
+      "id": "canvasOut", "type": "frontend", "label": "Output canvas", "sublabel": "putImageData per tile",
+      "stage": 3, "row": 0, "tag": "overlap trimmed", "width": 148, "height": 60
+    },
+    {
+      "id": "download", "type": "external", "label": "PNG file", "sublabel": "toDataURL → blob",
+      "stage": 4, "row": 0, "tag": "stays on-device", "width": 136, "height": 60
+    }
+  ],
+  "flows": [
+    {
+      "id": "to-canvas-in", "from": "source", "to": "canvasIn", "label": "drawImage",
+      "classification": "main thread"
+    },
+    {
+      "id": "to-worker", "from": "canvasIn", "to": "worker", "label": "postMessage(imageData)",
+      "classification": "one structured-clone copy", "labelDy": 54
+    },
+    {
+      "id": "model-to-worker", "from": "model", "to": "worker", "label": "InferenceSession.create",
+      "classification": "loaded once, reused per tile", "variant": "emphasis", "labelDy": 90
+    },
+    {
+      "id": "to-canvas-out", "from": "worker", "to": "canvasOut", "label": "tile buffer, transferable",
+      "classification": "zero-copy, cropped to trim overlap", "variant": "emphasis", "labelDy": 54
+    },
+    {
+      "id": "to-download", "from": "canvasOut", "to": "download", "label": "toDataURL('image/png')",
+      "classification": "final blob", "labelDy": 54
+    }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Runs entirely on-device", "items": ["The image and the model both stay in the browser — nothing is uploaded", "Object URLs and an offscreen canvas keep large buffers out of React state", "Tiling bounds memory: 128px tiles with 8px overlap (fixed 64px for x2)"] },
+    { "dot": "amber", "title": "The step that costs time, not money", "items": ["Model load + tiled inference is the slow part — there is no server bill", "Progress is reported per tile (25–95%) over postMessage", "Pixel Art mode is instant: it never touches the worker or a model"] },
+    { "dot": "slate", "title": "Kept honest at the seams", "items": ["Overlap is cropped back off after inference so tile edges don't show", "Alpha is restored from the original image, not from the model's output", "Fixed-input models (x2) get edge-replicated padding, then get cropped back"] }
+  ]
+}

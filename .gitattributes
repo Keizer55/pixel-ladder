@@ -9,3 +9,14 @@
 *.webp binary
 *.ico binary
 *.wasm binary
+
+# archify build output: 97% of every file is the same inlined viewer runtime.
+# Committed on purpose so a clone gets the interactive pages without installing
+# anything, but nobody should ever read one in a diff.
+#
+#   -text              no EOL conversion, so a re-render is not a whole-file change
+#   -diff               `git diff` says "Binary files differ" instead of thousands of lines
+#   linguist-generated  GitHub collapses it in pull requests and skips it in language stats
+#
+# The reviewable source is docs/diagrams/*.json.
+docs/diagrams/*.html -text -diff linguist-generated=true

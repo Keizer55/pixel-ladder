@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Pixel Ladder — module map",
+    "locale": "en",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Keizer55/pixel-ladder",
+      "revision": "088fbbd6ff3130664531d39248420c6bde38f3d7"
+    },
+    "views": [
+      {
+        "id": "runs-in-worker",
+        "label": "Where inference runs",
+        "focus": ["upscaleEngine", "onnxWorker", "models"],
+        "note": "Tiled ONNX inference runs in a dedicated Web Worker so the UI thread never blocks."
+      },
+      {
+        "id": "three-studios",
+        "label": "The three studios",
+        "focus": ["quickScale", "printStudio", "wallStudio", "printCalculator"],
+        "note": "One tab is mounted at a time. Print Studio and Wall Studio both defer to the same DPI math."
+      },
+      {
+        "id": "privacy-boundary",
+        "label": "The only network calls",
+        "focus": ["cookieConsent", "clarity"],
+        "note": "Clarity loads on every page load but only reports after the cookie banner is accepted."
+      }
+    ]
+  },
+  "layout": { "mode": "grid", "origin": [56, 104], "cols": 4, "gapX": 104, "gapY": 112, "cellW": 196, "cellH": 80 },
+  "components": [
+    {
+      "id": "app", "type": "frontend", "label": "App shell", "sublabel": "App.tsx — active-tab router",
+      "tag": "also mounts CookieConsent", "row": 0, "col": 1, "size": [196, 80],
+      "sources": [{ "path": "src/App.tsx", "line": 11, "label": "activeTab state" }]
+    },
+    {
+      "id": "navigation", "type": "frontend", "label": "Navigation", "sublabel": "Navigation.tsx — tab bar",
+      "row": 0, "col": 2, "size": [196, 80],
+      "sources": [{ "path": "src/components/Navigation.tsx", "label": "tab switcher" }]
+    },
+    {
+      "id": "cookieConsent", "type": "frontend", "label": "Cookie consent", "sublabel": "CookieConsent.tsx",
+      "tag": "gates analytics only", "row": 0, "col": 3, "size": [196, 80],
+      "sources": [{ "path": "src/components/CookieConsent.tsx", "line": 7, "label": "reads/writes localStorage consent" }]
+    },
+    {
+      "id": "quickScale", "type": "frontend", "label": "Quick Scale", "sublabel": "QuickScale.tsx — neural upscaling",
+      "row": 1, "col": 0, "size": [196, 80],
+      "sources": [{ "path": "src/components/QuickScale.tsx", "label": "upload, model select, download" }]
+    },
+    {
+      "id": "printStudio", "type": "frontend", "label": "Print Studio", "sublabel": "PrintStudio.tsx — DPI + crop",
+      "row": 1, "col": 1, "size": [196, 80],
+      "sources": [{ "path": "src/components/PrintStudio.tsx", "label": "DPI calculator + Crop Studio" }]
+    },
+    {
+      "id": "wallStudio", "type": "frontend", "label": "Wall Studio", "sublabel": "WallStudio.tsx — gallery planner",
+      "row": 1, "col": 2, "size": [196, 80],
+      "sources": [{ "path": "src/components/WallStudio.tsx", "label": "scaled virtual wall + frames" }]
+    },
+    {
+      "id": "clarity", "type": "external", "label": "Microsoft Clarity", "sublabel": "analytics, opt-in",
+      "tag": "loads always, reports after consent", "row": 1, "col": 3, "size": [196, 80],
+      "sources": [{ "path": "index.html", "line": 75, "label": "injected on every page load" }]
+    },
+    {
+      "id": "upscaleEngine", "type": "backend", "label": "useUpscaleEngine", "sublabel": "UpscaleEngine.ts — worker lifecycle",
+      "tag": "canvas fallback for Pixel Art", "row": 2, "col": 0, "size": [196, 80],
+      "sources": [{ "path": "src/lib/UpscaleEngine.ts", "line": 10, "label": "owns the Worker, stitches tiles" }]
+    },
+    {
+      "id": "printCalculator", "type": "backend", "label": "PrintCalculator", "sublabel": "px ↔ in ↔ cm, at a given DPI",
+      "tag": "shared by 2 studios", "row": 2, "col": 1, "size": [196, 80],
+      "sources": [{ "path": "src/lib/PrintCalculator.ts", "line": 27, "label": "getPrintDimensions — the one source of truth" }]
+    },
+    {
+      "id": "onnxWorker", "type": "messagebus", "label": "onnx-worker.js", "sublabel": "Web Worker — off the UI thread",
+      "tag": "streams tiles back, transferable", "row": 3, "col": 0, "size": [196, 80],
+      "sources": [{ "path": "src/lib/onnx-worker.js", "line": 64, "label": "tile loop, 128px ± 8px overlap" }]
+    },
+    {
+      "id": "models", "type": "external", "label": "Real-ESRGAN weights", "sublabel": "x2 / x4 / x4-anime, .onnx",
+      "tag": "not vendored in git", "row": 3, "col": 1, "size": [196, 80],
+      "sources": [
+        { "path": "public/RealESRGAN_x2plus.onnx", "label": "64 MB" },
+        { "path": "public/RealESRGAN_x4plus.onnx", "label": "32 MB" },
+        { "path": "public/RealESRGAN_x4plus_anime_6B.onnx", "label": "18 MB" }
+      ]
+    }
+  ],
+  "connections": [
+    { "id": "app-nav", "from": "app", "to": "navigation", "label": "activeTab" },
+    { "id": "cookie-clarity", "from": "cookieConsent", "to": "clarity", "label": "consent accepted", "variant": "emphasis", "labelDy": 24 },
+    { "id": "app-quick", "from": "app", "to": "quickScale", "label": "tab === quick", "variant": "dashed", "labelDy": 24 },
+    { "id": "app-print", "from": "app", "to": "printStudio", "label": "tab === print", "variant": "dashed", "labelDy": 24 },
+    { "id": "app-wall", "from": "app", "to": "wallStudio", "label": "tab === wall", "variant": "dashed", "labelDy": 24 },
+    { "id": "quick-engine", "from": "quickScale", "to": "upscaleEngine", "label": "upscaleImage(file, mode)", "labelDy": 24 },
+    { "id": "engine-worker", "from": "upscaleEngine", "to": "onnxWorker", "label": "postMessage(imageData)", "labelDy": 24 },
+    { "id": "worker-models", "from": "onnxWorker", "to": "models", "label": "InferenceSession.create", "variant": "emphasis", "labelDy": -34 },
+    { "id": "print-calc", "from": "printStudio", "to": "printCalculator", "label": "getPrintDimensions", "labelDy": 24 },
+    { "id": "wall-calc", "from": "wallStudio", "to": "printCalculator", "label": "getPrintDimensions", "labelDy": 68 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Runs entirely client-side", "items": ["Every studio and the worker run in the browser — no backend, no API", "Object URLs and an offscreen canvas keep large images out of React state", "Real-ESRGAN inference happens in a dedicated Web Worker so the UI thread never blocks"] },
+    { "dot": "amber", "title": "The only two network calls", "items": ["The three .onnx models are fetched once, lazily — not bundled in the repo (see docs/deployment.md)", "Microsoft Clarity loads on every page but only reports after the cookie banner is accepted"] },
+    { "dot": "slate", "title": "Kept apart on purpose", "items": ["Print Studio and Wall Studio both defer to PrintCalculator so the DPI math never drifts", "Pixel Art mode bypasses the worker entirely — nearest-neighbor scaling on the main thread", "React.lazy + Suspense mounts only the active tab, so the other two cost nothing until clicked"] }
+  ]
+}
