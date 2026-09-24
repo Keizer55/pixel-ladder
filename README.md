@@ -9,7 +9,7 @@
 
 ---
 
-![Pixel Ladder Demo](./public/pixel-ladder-demo.gif)
+![Pixel Ladder demo](./docs/demo/pixel-ladder-demo.gif)
 
 ---
 
