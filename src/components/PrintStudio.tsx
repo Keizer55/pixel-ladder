@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getPrintDimensions, PrintDimensions } from '../lib/PrintCalculator';
-import { Printer, Image as ImageIcon, Upload, Scissors, Download, Zap, Info } from 'lucide-react';
+import { Printer, Image as ImageIcon, Upload, Scissors, Download, Zap, Info, Lightbulb, AlertTriangle } from 'lucide-react';
 import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { useI18n } from '../i18n/I18nProvider';
+import { useWorkspace } from '../lib/Workspace';
+import Button, { buttonClasses } from './ui/Button';
+import ChoiceGroup from './ui/ChoiceGroup';
+import ResolutionAlert, { formatScale } from './ui/ResolutionAlert';
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
   return centerCrop(
@@ -21,21 +26,31 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
 }
 
 export default function PrintStudio() {
+  const { t } = useI18n();
+  const { image, setImage, requestUpscale } = useWorkspace();
   const [unit, setUnit] = useState<'in' | 'cm'>('cm');
   const [dpi, setDpi] = useState<number>(300);
   const [width, setWidth] = useState<string>('20');
   const [height, setHeight] = useState<string>('30');
   const [dimensions, setDimensions] = useState<PrintDimensions | null>(null);
 
-  // Cropping state
-  const [imgSrc, setImgSrc] = useState('');
+  // Cropping state. The image is the one shared by all tools.
+  const imgSrc = image?.url ?? '';
+  const [isDragging, setIsDragging] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [imgSize, setImgSize] = useState<{w: number, h: number} | null>(null);
   const [isExactMode, setIsExactMode] = useState(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // A new shared image (loaded here or sent from another tool) starts a fresh crop.
+  useEffect(() => {
+    setCrop(undefined);
+    setCompletedCrop(undefined);
+    setImgSize(null);
+    setIsExactMode(false);
+  }, [image?.id]);
 
   useEffect(() => {
     const w = parseFloat(width);
@@ -93,28 +108,19 @@ export default function PrintStudio() {
   // Red warning state
   const isTooSmall = isExactMode && imgSize && dimensions && (imgSize.w < dimensions.widthPx || imgSize.h < dimensions.heightPx);
 
+  const loadFile = (file: File | undefined) => {
+    if (file && file.type.startsWith('image/')) setImage(file, file.name, 'print');
+  };
+
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setCrop(undefined);
-      setImgSize(null);
-      setIsExactMode(false);
-      const reader = new FileReader();
-      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''));
-      reader.readAsDataURL(e.target.files[0]);
-    }
+    loadFile(e.target.files?.[0]);
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setCrop(undefined);
-      setImgSize(null);
-      setIsExactMode(false);
-      const reader = new FileReader();
-      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''));
-      reader.readAsDataURL(file);
-    }
+    setIsDragging(false);
+    loadFile(e.dataTransfer.files?.[0]);
   };
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -141,6 +147,10 @@ export default function PrintStudio() {
   })();
 
   const isCropTooSmall = !!(dimensions && cropPixelSize && (cropPixelSize.w < dimensions.widthPx || cropPixelSize.h < dimensions.heightPx));
+  // Upscale factor the crop needs to reach the print size.
+  const cropScaleNeeded = dimensions && cropPixelSize
+    ? Math.max(dimensions.widthPx / cropPixelSize.w, dimensions.heightPx / cropPixelSize.h)
+    : 1;
 
   const handleDownloadCrop = () => {
     if (!completedCrop || !imgRef.current || !completedCrop.width || !completedCrop.height) return;
@@ -189,35 +199,37 @@ export default function PrintStudio() {
           {/* Left Column: Calculator */}
           <div className="flex flex-col gap-6">
             <h2 className="text-xl md:text-2xl uppercase flex items-center gap-3 text-text font-light tracking-wider">
-              <Printer className="w-5 h-5 md:w-6 md:h-6 text-accent" />
-              Print Calculator & Crop Studio
+              <Printer className="w-5 h-5 md:w-6 md:h-6 text-accent" aria-hidden="true" />
+              {t.print.title}
             </h2>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-muted uppercase text-xs mb-2">Target Width</label>
+                <label htmlFor="print-width" className="block text-muted uppercase text-xs mb-2">{t.print.targetWidth}</label>
                 <div className="flex">
                   <input
+                    id="print-width"
                     type="number"
                     value={width}
                     onChange={(e) => setWidth(e.target.value)}
-                    className="w-full bg-bg border border-muted/50 text-text p-2 font-mono text-sm focus:outline-none focus:border-muted rounded-l-sm"
+                    className="w-full bg-bg border border-border text-text p-2 font-mono text-sm rounded-l-sm"
                   />
-                  <span className="bg-muted/20 text-muted px-3 py-2 uppercase border border-l-0 border-muted/50 flex items-center text-xs rounded-r-sm">
+                  <span className="bg-muted/20 text-muted px-3 py-2 uppercase border border-l-0 border-border flex items-center text-xs rounded-r-sm">
                     {unit}
                   </span>
                 </div>
               </div>
               <div>
-                <label className="block text-muted uppercase text-xs mb-2">Target Height</label>
+                <label htmlFor="print-height" className="block text-muted uppercase text-xs mb-2">{t.print.targetHeight}</label>
                 <div className="flex">
                   <input
+                    id="print-height"
                     type="number"
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
-                    className="w-full bg-bg border border-muted/50 text-text p-2 font-mono text-sm focus:outline-none focus:border-muted rounded-l-sm"
+                    className="w-full bg-bg border border-border text-text p-2 font-mono text-sm rounded-l-sm"
                   />
-                  <span className="bg-muted/20 text-muted px-3 py-2 uppercase border border-l-0 border-muted/50 flex items-center text-xs rounded-r-sm">
+                  <span className="bg-muted/20 text-muted px-3 py-2 uppercase border border-l-0 border-border flex items-center text-xs rounded-r-sm">
                     {unit}
                   </span>
                 </div>
@@ -226,154 +238,146 @@ export default function PrintStudio() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-muted uppercase text-xs mb-2">Unit</label>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setUnit('cm')}
-                    className={`flex-1 py-1.5 text-xs uppercase rounded-sm ${
-                      unit === 'cm' ? 'tech-button-active' : 'tech-button'
-                    }`}
-                  >
-                    CM
-                  </button>
-                  <button
-                    onClick={() => setUnit('in')}
-                    className={`flex-1 py-1.5 text-xs uppercase rounded-sm ${
-                      unit === 'in' ? 'tech-button-active' : 'tech-button'
-                    }`}
-                  >
-                    Inches
-                  </button>
-                </div>
+                <span className="block text-muted uppercase text-xs mb-2" aria-hidden="true">{t.print.unit}</span>
+                <ChoiceGroup
+                  label={t.print.unit}
+                  value={unit}
+                  onChange={setUnit}
+                  options={[{ value: 'cm', label: t.print.cm }, { value: 'in', label: t.print.inches }]}
+                  optionClassName="flex-1 h-10 text-xs"
+                />
               </div>
               <div>
-                <label className="block text-muted uppercase text-xs mb-2">DPI (Resolution)</label>
+                <label htmlFor="print-dpi" className="block text-muted uppercase text-xs mb-2">{t.print.dpi}</label>
                 <select
+                  id="print-dpi"
                   value={dpi}
                   onChange={(e) => setDpi(Number(e.target.value))}
-                  className="w-full bg-bg border border-muted/50 text-text p-2 font-mono text-sm focus:outline-none focus:border-muted appearance-none rounded-sm"
+                  className="w-full h-10 bg-bg border border-border text-text px-2 font-mono text-sm appearance-none rounded-sm"
                 >
-                  <option value={150}>150 DPI (Draft)</option>
-                  <option value={300}>300 DPI (Standard)</option>
-                  <option value={600}>600 DPI (High Quality)</option>
+                  <option value={150}>{t.print.dpiDraft}</option>
+                  <option value={300}>{t.print.dpiStandard}</option>
+                  <option value={600}>{t.print.dpiHigh}</option>
                 </select>
               </div>
             </div>
 
             {dimensions && (
               <div className="tech-panel-inner tech-panel-inner-corner p-4 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-muted to-transparent opacity-50"></div>
-                
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-muted to-transparent opacity-50" aria-hidden="true"></div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="text-muted uppercase text-xs leading-relaxed flex flex-col justify-start">
                     <h3 className="text-sm uppercase text-text mb-2 flex items-center gap-2 tracking-wider">
-                      <ImageIcon className="w-4 h-4 text-muted" />
-                      Required Pixels
+                      <ImageIcon className="w-4 h-4 text-muted" aria-hidden="true" />
+                      {t.print.requiredPixels}
                     </h3>
-                    <div><span className="opacity-60">Target Print Size:</span> <span className="text-text tracking-wider">{width} x {height} {unit}</span></div>
+                    <div>{t.print.targetPrintSize} <span className="text-text tracking-wider">{width} x {height} {unit}</span></div>
                     <div className="mt-2">
-                      <div className="opacity-60">Resolution ({dpi} DPI):</div> 
+                      <div>{t.print.resolutionAt(dpi)}</div>
                       <div className="text-text text-base md:text-lg font-mono tracking-wider pl-4 mt-1">
-                        {dimensions.widthPx} <span className="opacity-50 mx-1">x</span> {dimensions.heightPx} <span className="text-[10px] opacity-70 ml-1">PX</span>
+                        {dimensions.widthPx} <span className="text-muted mx-1">x</span> {dimensions.heightPx} <span className="text-xs text-muted ml-1">PX</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="text-muted uppercase text-xs leading-relaxed md:text-right flex flex-col justify-start">
                     <h3 className="text-sm uppercase text-text mb-2 flex items-center md:justify-end gap-2 tracking-wider">
-                      <Info className="w-4 h-4 text-muted" />
-                      Image Details
+                      <Info className="w-4 h-4 text-muted" aria-hidden="true" />
+                      {t.print.imageDetails}
                     </h3>
-                    <div><span className="opacity-60">Aspect Ratio:</span> <span className="text-text">{formatAspectRatio(aspect)}</span></div>
+                    <div>{t.print.aspectRatio} <span className="text-text">{formatAspectRatio(aspect)}</span></div>
                     {imgSize && (
-                      <div><span className="opacity-60">Image Size:</span> <span className="text-text">{imgSize.w} x {imgSize.h} px</span></div>
+                      <div>{t.print.imageSize} <span className="text-text">{imgSize.w} x {imgSize.h} px</span></div>
                     )}
                     {cropPixelSize && (
-                      <div><span className="opacity-60">Crop Size:</span> <span className="text-text">{cropPixelSize.w} x {cropPixelSize.h} px</span></div>
-                    )}
-                    {isCropTooSmall && (
-                      <div className="text-red-500 mt-1 text-[10px] normal-case leading-tight max-w-[180px] md:ml-auto">
-                        Warning: Low resolution, use the Quick Scale
-                      </div>
+                      <div>{t.print.cropSize} <span className="text-text">{cropPixelSize.w} x {cropPixelSize.h} px</span></div>
                     )}
                   </div>
                 </div>
+
+                {isCropTooSmall && cropPixelSize && (
+                  <div role="status" className="mt-4">
+                    <ResolutionAlert
+                      lead={t.common.lowResolution}
+                      detail={t.print.lowResDetail(cropPixelSize.w, cropPixelSize.h, width, height, unit, dpi, dimensions.widthPx, dimensions.heightPx)}
+                      actionLabel={t.common.upscaleInQuickScale}
+                      onAction={() => requestUpscale({ minScale: cropScaleNeeded })}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Right Column: Cropper */}
           <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-2">
               <h3 className="text-sm uppercase text-text flex items-center gap-2 tracking-wider">
-                <Scissors className="w-4 h-4 text-muted" />
-                Crop Studio
+                <Scissors className="w-4 h-4 text-muted" aria-hidden="true" />
+                {t.print.cropStudio}
               </h3>
-              <div className="flex gap-4">
+              <div className="flex gap-2 flex-wrap items-center">
                 {imgSrc && dimensions && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase text-muted tracking-wider hidden md:inline">Exact Pixel Cut</span>
-                    <button 
-                      onClick={() => setIsExactMode(!isExactMode)}
-                      aria-label="Toggle exact pixel cut mode"
-                      className={`relative w-8 h-4 rounded-full transition-colors outline-none focus:outline-none ${
-                        isExactMode ? 'bg-accent' : 'bg-muted/30 border border-muted/50'
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isExactMode}
+                    onClick={() => setIsExactMode(!isExactMode)}
+                    className="h-8 flex items-center gap-2 px-1 rounded-sm text-xs uppercase text-muted tracking-wider"
+                  >
+                    <span>{t.print.exactPixelCut}</span>
+                    <span
+                      aria-hidden="true"
+                      className={`relative w-9 h-5 rounded-full transition-colors ${
+                        isExactMode ? 'bg-accent' : 'bg-muted/20 border border-border'
                       }`}
                     >
-                      <div className={`absolute top-[1px] w-3 h-3 rounded-full transition-transform ${
-                        isExactMode ? 'translate-x-[15px] bg-bg' : 'translate-x-[1px] bg-muted'
+                      <span className={`absolute top-[3px] w-3.5 h-3.5 rounded-full transition-transform ${
+                        isExactMode ? 'translate-x-[18px] bg-bg' : 'translate-x-[2px] bg-muted'
                       }`} />
-                    </button>
-                  </div>
-                )}
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="tech-button px-3 py-1.5 uppercase text-xs flex items-center gap-2 rounded-sm"
-                >
-                  <Upload className="w-3 h-3" /> Load Image
-                </button>
-                {imgSrc && completedCrop && (
-                  <button 
-                    onClick={handleDownloadCrop}
-                    className="tech-button border-accent text-accent hover:bg-accent/10 px-3 py-1.5 uppercase text-xs flex items-center gap-2 rounded-sm transition-colors"
-                  >
-                    <Download className="w-3 h-3" /> Save Crop
+                    </span>
                   </button>
                 )}
+                <label className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'dropzone cursor-pointer' })}>
+                  <Upload className="w-3.5 h-3.5" aria-hidden="true" /> {t.common.loadImage}
+                  <input type="file" accept="image/*" onChange={onSelectFile} className="sr-only" />
+                </label>
+                {imgSrc && completedCrop && (
+                  <Button variant="secondary" size="sm" onClick={handleDownloadCrop}>
+                    <Download className="w-3.5 h-3.5" aria-hidden="true" /> {t.print.saveCrop}
+                  </Button>
+                )}
               </div>
-              <input 
-                type="file" 
-                accept="image/*" 
-                ref={fileInputRef} 
-                onChange={onSelectFile} 
-                className="hidden" 
-              />
             </div>
 
-            <div 
-              className="flex-1 bg-bg border border-muted/30 relative min-h-[300px] flex items-center justify-center overflow-hidden p-2"
-              onDragOver={(e) => e.preventDefault()}
+            <div
+              className={`flex-1 bg-bg border relative min-h-[300px] flex items-center justify-center overflow-hidden p-2 transition-colors ${
+                isDragging ? 'border-accent' : 'border-muted/30'
+              }`}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
             >
               <div className="absolute inset-0 dot-grid pointer-events-none"></div>
-              {isTooSmall && (
-                <div className="absolute top-2 right-2 z-10 bg-red-900/40 border border-red-500/50 text-red-500 text-[10px] uppercase px-2 py-1 rounded-sm shadow-md animate-pulse">
-                  Image smaller than required print {dimensions?.widthPx}x{dimensions?.heightPx}px
+              {isTooSmall && dimensions && (
+                <div className="absolute top-2 right-2 z-10 bg-panel border border-danger text-danger text-xs px-2 py-1 rounded-sm shadow-md flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  {t.print.imageSmaller(dimensions.widthPx, dimensions.heightPx)}
                 </div>
               )}
-              
+
               {!imgSrc ? (
-                <div 
-                  className="flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:bg-muted/10 transition-colors w-full h-full"
-                  onClick={() => fileInputRef.current?.click()}
+                <label
+                  className={`dropzone flex flex-col items-center justify-center p-8 text-center cursor-pointer transition-colors w-full h-full relative ${
+                    isDragging ? 'bg-accent-dim' : 'hover:bg-accent-dim'
+                  }`}
                 >
-                  <Upload className="w-12 h-12 text-muted mx-auto mb-4" />
-                  <p className="text-xl uppercase mb-2">Click or Drag Image Here</p>
-                  <p className="text-xs text-muted uppercase mb-4 max-w-sm">Load an image to crop it to the exact aspect ratio required for printing.</p>
-                  <button className="tech-button px-3 py-1.5 uppercase text-xs flex items-center gap-2 rounded-sm" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-                    <Upload className="w-3 h-3" /> Load Image
-                  </button>
-                </div>
+                  <input type="file" accept="image/*" onChange={onSelectFile} className="sr-only" />
+                  <Upload className="w-10 h-10 text-muted mx-auto mb-4" aria-hidden="true" />
+                  <span className="text-base mb-2">{t.print.dropTitle}</span>
+                  <span className="text-sm text-muted max-w-sm">{t.print.dropDesc}</span>
+                </label>
               ) : (
                 <ReactCrop
                   crop={crop}
@@ -386,14 +390,14 @@ export default function PrintStudio() {
                   <div className="relative flex items-center justify-center max-h-[400px]">
                     {isExactMode && imgSize ? (
                       <>
-                        <img 
+                        <img
                           src={`data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${wrapperW}' height='${wrapperH}'/%3E`}
                           className="max-h-[400px] w-auto max-w-full block opacity-0 pointer-events-none"
                           alt="" aria-hidden="true"
                         />
                         <img
                           ref={imgRef}
-                          alt="Image to crop for printing"
+                          alt={t.print.altCrop}
                           src={imgSrc}
                           onLoad={onImageLoad}
                           className="absolute pointer-events-none inset-0 m-auto"
@@ -407,7 +411,7 @@ export default function PrintStudio() {
                     ) : (
                       <img
                         ref={imgRef}
-                        alt="Image to crop for printing"
+                        alt={t.print.altCrop}
                         src={imgSrc}
                         onLoad={onImageLoad}
                         className="max-h-[400px] w-auto max-w-full object-contain block"
@@ -423,16 +427,15 @@ export default function PrintStudio() {
 
       {/* Explanation Section */}
       <section className="mt-4 p-6 border border-muted/30 bg-panel text-center rounded-sm">
-        <h3 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
-          <Zap className="w-4 h-4 text-accent" aria-hidden="true" /> How Pixel Ladder Print Calculator Works
-        </h3>
+        <h2 className="text-lg text-muted uppercase mb-2 flex items-center justify-center gap-2 tracking-wider">
+          <Zap className="w-4 h-4 text-accent" aria-hidden="true" /> {t.print.howTitle}
+        </h2>
         <p className="text-muted text-sm max-w-3xl mx-auto leading-relaxed">
-          Enter your desired real-world print dimensions (width, height) and DPI (dots per inch) to calculate the <strong>exact pixel resolution</strong> your image needs for high-quality printing.
-          Then load a photo into our free Crop Studio to easily crop it to the correct aspect ratio natively in your browser.
-          <br/><br/>
-          <span className="text-accent/80">
-            💡 Tip: Enable "Exact Pixel Cut" to lock the crop selection to the precise pixel dimensions required. If your image is too small to print without losing quality, use our AI Image Upscaler (Quick Scale tab) to increase its resolution first, then come back here to crop.
-          </span>
+          {t.print.howBody}
+        </p>
+        <p className="text-accent text-sm max-w-3xl mx-auto leading-relaxed mt-4 flex gap-2 justify-center">
+          <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{t.print.howTip}</span>
         </p>
       </section>
     </div>

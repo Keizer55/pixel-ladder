@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { Cookie } from 'lucide-react';
+import { useI18n } from '../i18n/I18nProvider';
+import Button from './ui/Button';
 
 export default function CookieConsent() {
+  const { t } = useI18n();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -27,28 +30,21 @@ export default function CookieConsent() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-panel border-t-2 border-accent p-4 md:p-6 shadow-lg"
-         style={{backgroundColor: 'var(--color-panel)'}}>
+    <div role="region" aria-label="Cookies" className="fixed bottom-0 left-0 right-0 z-50 bg-panel border-t-2 border-accent p-4 md:p-6 shadow-lg">
       <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div className="flex-1">
-          <p className="text-sm md:text-base font-mono text-primary">
-            🍪 We use <strong>Microsoft Clarity</strong> to understand how you use our tool and improve your experience. 
-            Your images are <strong>always processed locally</strong> and never uploaded.
+        <div className="flex-1 flex gap-3 items-start">
+          <Cookie className="w-5 h-5 shrink-0 mt-0.5 text-accent" aria-hidden="true" />
+          <p className="text-sm md:text-base font-mono text-text">
+            {t.cookies.before}<strong>{t.cookies.service}</strong>{t.cookies.middle}<strong>{t.cookies.local}</strong>{t.cookies.after}
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <button
-            onClick={handleAccept}
-            className="flex-1 md:flex-none px-4 py-2 bg-accent text-surface font-mono text-sm hover:opacity-80 transition-opacity border-2 border-accent"
-          >
-            Accept
-          </button>
-          <button
-            onClick={handleDecline}
-            className="flex-1 md:flex-none px-4 py-2 bg-surface text-primary font-mono text-sm hover:bg-muted/10 transition-colors border-2 border-muted"
-          >
-            Decline
-          </button>
+          <Button variant="primary" size="md" onClick={handleAccept} className="flex-1 md:flex-none">
+            {t.cookies.accept}
+          </Button>
+          <Button variant="secondary" size="md" onClick={handleDecline} className="flex-1 md:flex-none">
+            {t.cookies.decline}
+          </Button>
         </div>
       </div>
     </div>

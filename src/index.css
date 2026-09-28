@@ -7,7 +7,9 @@
   --color-accent-dim: rgba(92, 184, 92, 0.15);
   --color-panel: #1c1f24;
   --color-muted: #8b949e;
-  --font-sans: 'Geist', sans-serif;
+  --color-border: #6e7681;
+  --color-danger: #ff7b72;
+  --font-sans: 'Geist Mono', monospace;
   --font-mono: 'Geist Mono', monospace;
   --rc-focus-color: var(--color-muted);
   --rc-border-color: rgba(255, 255, 255, 0.3);
@@ -19,8 +21,10 @@
   --color-accent: #8b5a2b;
   --color-accent-dim: rgba(139, 90, 43, 0.15);
   --color-panel: #fffaf5;
-  --color-muted: #8d6e63;
-  --font-sans: 'Geist', sans-serif;
+  --color-muted: #765a50;
+  --color-border: #9c8479;
+  --color-danger: #b3261e;
+  --font-sans: 'Geist Mono', monospace;
   --font-mono: 'Geist Mono', monospace;
 }
 
@@ -31,6 +35,8 @@
   --color-accent-dim: var(--color-accent-dim);
   --color-panel: var(--color-panel);
   --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+  --color-danger: var(--color-danger);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --color-background: var(--color-bg);
@@ -96,6 +102,7 @@
   }
 
   .tech-button-active {
+    border: 1px solid var(--color-accent);
     background-color: var(--color-accent);
     color: var(--color-bg);
   }
@@ -105,7 +112,7 @@
   }
   
   .dot-grid {
-    background-image: radial-gradient(color-mix(in srgb, var(--color-muted) 40%, transparent) 1px, transparent 1px);
+    background-image: radial-gradient(color-mix(in srgb, var(--color-muted) 32%, transparent) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 }
@@ -115,4 +122,16 @@ body {
   color: var(--color-text);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus: a 2px ink ring with a gap, visible on every control in both themes. */
+:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* File inputs are visually hidden inside their drop zone label, so the label shows the ring. */
+.dropzone:has(input:focus-visible) {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
 }

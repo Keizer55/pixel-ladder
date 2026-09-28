@@ -7,25 +7,42 @@ export interface UpscaleResult {
   timeMs: number;
 }
 
+export const UPSCALE_CANCELLED = 'UpscaleCancelled';
+
+const createWorker = () =>
+  new Worker(new URL('./onnx-worker.js', import.meta.url), { type: 'module' });
+
 export function useUpscaleEngine() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const workerRef = useRef<Worker | null>(null);
+  // Rejects the in-flight upscale; set while a job runs so cancel() can end it.
+  const abortRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     // Initialize Web Worker for ONNX inference
-    workerRef.current = new Worker(new URL('./onnx-worker.js', import.meta.url), {
-      type: 'module',
-    });
+    workerRef.current = createWorker();
 
     return () => {
       workerRef.current?.terminate();
     };
   }, []);
 
+  // Stops the running job. The worker is replaced because ONNX inference
+  // cannot be interrupted from outside.
+  const cancel = useCallback(() => {
+    if (!abortRef.current) return;
+    workerRef.current?.terminate();
+    workerRef.current = createWorker();
+    abortRef.current();
+    abortRef.current = null;
+    setIsProcessing(false);
+    setProgress(0);
+  }, []);
+
   const upscaleImage = useCallback(async (
-    imageFile: File,
+    imageFile: Blob,
     modelType: 'x2' | 'x4' | 'x4-anime' | 'pixel-art'
   ): Promise<UpscaleResult> => {
     setIsProcessing(true);
@@ -33,6 +50,11 @@ export function useUpscaleEngine() {
     setError(null);
 
     return new Promise((resolve, reject) => {
+      abortRef.current = () => {
+        const err = new Error('Upscale cancelled');
+        err.name = UPSCALE_CANCELLED;
+        reject(err);
+      };
       const startTime = performance.now();
       const scale = modelType === 'x2' ? 2 : 4;
 
@@ -85,6 +107,7 @@ export function useUpscaleEngine() {
             setProgress(100);
             const resultUrl = outCanvas.toDataURL('image/png');
             URL.revokeObjectURL(objectUrl);
+            abortRef.current = null;
             setIsProcessing(false);
             resolve({
               imageUrl: resultUrl,
@@ -134,6 +157,7 @@ export function useUpscaleEngine() {
               if (!outCanvas) return;
               const resultUrl = outCanvas.toDataURL('image/png');
               URL.revokeObjectURL(objectUrl);
+              abortRef.current = null;
               setIsProcessing(false);
               resolve({
                 imageUrl: resultUrl,
@@ -144,6 +168,7 @@ export function useUpscaleEngine() {
 
             } else if (data.type === 'error') {
               URL.revokeObjectURL(objectUrl);
+              abortRef.current = null;
               setIsProcessing(false);
               const msg = `Model inference failed: ${data.message}`;
               setError(msg);
@@ -161,6 +186,7 @@ export function useUpscaleEngine() {
           });
         } else {
           URL.revokeObjectURL(objectUrl);
+          abortRef.current = null;
           setIsProcessing(false);
           const msg = 'ONNX worker not available';
           setError(msg);
@@ -170,6 +196,7 @@ export function useUpscaleEngine() {
 
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl);
+        abortRef.current = null;
         setIsProcessing(false);
         setError('Failed to load image');
         reject(new Error('Failed to load image'));
@@ -181,6 +208,7 @@ export function useUpscaleEngine() {
 
   return {
     upscaleImage,
+    cancel,
     isProcessing,
     progress,
     error,
