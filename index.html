@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Apply the saved (or system) theme and language before first paint to avoid a flash -->
+    <!-- Apply the saved theme (light by default) and language before first paint to avoid a flash -->
     <script>
       (function () {
         try {
           var root = document.documentElement;
           var theme = localStorage.getItem('pl-theme');
           if (theme !== 'light' && theme !== 'dark') {
-            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            theme = 'light';
           }
           root.setAttribute('data-theme', theme);
           var lang = localStorage.getItem('pl-lang');

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { getPrintDimensions, PrintDimensions } from '../lib/PrintCalculator';
 import { Printer, Image as ImageIcon, Upload, Scissors, Download, Zap, Info, Lightbulb, AlertTriangle } from 'lucide-react';
-import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop, convertToPixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWorkspace } from '../lib/Workspace';
@@ -43,9 +43,26 @@ export default function PrintStudio() {
   const [imgSize, setImgSize] = useState<{w: number, h: number} | null>(null);
   const [isExactMode, setIsExactMode] = useState(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  // The element ReactCrop measures (its child); percent crops are relative to it.
+  const mediaRef = useRef<HTMLDivElement>(null);
+
+  // Crops set in code (new aspect ratio, exact mode, new image) never fire
+  // onComplete, so derive the pixel crop here to keep the crop size, the
+  // low-resolution warning and "Save crop" in sync with what is on screen.
+  useEffect(() => {
+    if (!crop) return;
+    const frame = requestAnimationFrame(() => {
+      const media = mediaRef.current;
+      if (!media || !media.offsetWidth || !media.offsetHeight) return;
+      setCompletedCrop(convertToPixelCrop(crop, media.offsetWidth, media.offsetHeight));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [crop]);
 
   // A new shared image (loaded here or sent from another tool) starts a fresh crop.
-  useEffect(() => {
+  // Layout effect: it must run before the new <img> can fire onLoad, or the
+  // reset would wipe the size that onLoad just stored.
+  useLayoutEffect(() => {
     setCrop(undefined);
     setCompletedCrop(undefined);
     setImgSize(null);
@@ -387,7 +404,7 @@ export default function PrintStudio() {
                   locked={isExactMode}
                   className="max-h-[400px]"
                 >
-                  <div className="relative flex items-center justify-center max-h-[400px]">
+                  <div ref={mediaRef} className="relative flex items-center justify-center max-h-[400px]">
                     {isExactMode && imgSize ? (
                       <>
                         <img

@@ -53,6 +53,9 @@ const browser = await chromium.launch();
 const context = await browser.newContext({
   viewport: { width: 1280, height: 800 },
   deviceScaleFactor: 1,
+  // English copy and the light theme, whatever the recording machine prefers.
+  locale: 'en-US',
+  colorScheme: 'light',
   recordVideo: { dir: outDir, size: { width: 1280, height: 800 } },
 });
 await context.addInitScript(cursorScript);
@@ -93,7 +96,7 @@ mark('land');
 await page.waitForTimeout(1500);
 
 // Load the low-res image through the drop zone.
-const dropZone = page.getByText('Click or Drag Image Here');
+const dropZone = page.getByText('Click or drag an image here');
 await moveTo(dropZone);
 await page.waitForTimeout(200);
 const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.mouse.down().then(() => page.mouse.up())]);
@@ -101,8 +104,8 @@ await chooser.setFiles(source);
 mark('loaded');
 await page.waitForTimeout(1200);
 
-await click(page.getByRole('button', { name: 'X4', exact: true }), 600);
-await click(page.getByRole('button', { name: 'Upscale Now' }), 0);
+await click(page.locator('label').filter({ has: page.locator('input[value="x4"]') }), 600);
+await click(page.getByRole('button', { name: 'Upscale now' }), 0);
 mark('processStart');
 const resultImg = page.getByAltText('Upscaled high-resolution result from Pixel Ladder AI');
 await resultImg.waitFor({ timeout: 300_000 });
@@ -127,22 +130,29 @@ mark('hold');
 await page.waitForTimeout(2800);
 mark('holdEnd');
 
-// Print Studio beat: enter a print size, read the required pixels.
+// Print Studio beat: send the result over (no re-upload), enter a print size,
+// read the required pixels and the low-resolution warning.
 await page.mouse.move(640, 300, { steps: 10 });
-await scrollBy(-330);
+await scrollBy(-200);
 await page.waitForTimeout(300);
 mark('printStart');
-await click(page.getByRole('button', { name: 'Print Studio' }), 700);
-const [widthInput, heightInput] = await page.locator('input[type=number]').all();
-for (const [input, value] of [[widthInput, '50'], [heightInput, '40']]) {
+await click(page.getByRole('button', { name: 'Use in Print Studio →' }), 700);
+await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+await page.waitForTimeout(700);
+for (const [input, value] of [[page.locator('#print-width'), '50'], [page.locator('#print-height'), '40']]) {
   await click(input, 150);
   await page.keyboard.press('Control+A');
   await page.keyboard.type(value, { delay: 90 });
   await page.waitForTimeout(400);
 }
-await moveTo(page.getByText('Required Pixels'), 20);
+await moveTo(page.getByText('Required pixels'), 20);
 mark('printHold');
 await page.waitForTimeout(2200);
+
+// Language beat: switch the interface to Spanish.
+await click(page.getByRole('button', { name: 'ES', exact: true }), 0);
+mark('langHold');
+await page.waitForTimeout(2000);
 mark('end');
 
 const video = page.video();
