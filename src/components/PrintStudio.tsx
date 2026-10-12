@@ -5,6 +5,7 @@ import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop, conve
 import 'react-image-crop/dist/ReactCrop.css';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWorkspace } from '../lib/Workspace';
+import { track } from '../lib/analytics';
 import Button, { buttonClasses } from './ui/Button';
 import ChoiceGroup from './ui/ChoiceGroup';
 import ResolutionAlert, { formatScale } from './ui/ResolutionAlert';
@@ -207,6 +208,7 @@ export default function PrintStudio() {
     link.href = base64Image;
     link.download = 'pixel-ladder-crop.png';
     link.click();
+    track('download', { type: 'crop' });
   };
 
   return (

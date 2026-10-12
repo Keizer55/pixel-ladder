@@ -4,6 +4,7 @@ import { getPrintDimensions } from '../lib/PrintCalculator';
 import { LayoutDashboard, Plus, Trash2, Upload, Image as ImageIcon, Ruler, X, Download, Save, UploadCloud, Zap, AlertTriangle, Pencil, Check, ImagePlus } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWorkspace, dataUrlToBlob, blobToDataUrl } from '../lib/Workspace';
+import { track } from '../lib/analytics';
 import Button from './ui/Button';
 import ChoiceGroup from './ui/ChoiceGroup';
 import ResolutionAlert, { formatScale } from './ui/ResolutionAlert';
@@ -452,6 +453,7 @@ export default function WallStudio() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      track('download', { type: 'wall-preview' });
     } catch (err) {
       console.error('Failed to download preview', err);
     }

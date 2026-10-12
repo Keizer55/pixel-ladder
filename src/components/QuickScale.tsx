@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUpscaleEngine, UPSCALE_CANCELLED } from '../lib/UpscaleEngine';
 import { useWorkspace, dataUrlToBlob, type SharedImage } from '../lib/Workspace';
 import { useI18n } from '../i18n/I18nProvider';
+import { track } from '../lib/analytics';
 import Button, { buttonClasses } from './ui/Button';
 import RadioCard from './ui/RadioCard';
 import { Upload, Download, Zap, Info } from 'lucide-react';
@@ -76,11 +77,23 @@ export default function QuickScale() {
       });
       setZoomPos({ x: 50, y: 50 });
       setAnnouncement(t.quick.done(res.width, res.height));
+      track('upscale', {
+        model: modelType,
+        origin: input.origin,
+        input_mp: Math.round((input.width * input.height) / 1e5) / 10,
+        output_mp: Math.round((res.width * res.height) / 1e5) / 10,
+        seconds: Math.round(res.timeMs / 100) / 10,
+      });
     } catch (err) {
       if (err instanceof Error && err.name === UPSCALE_CANCELLED) {
         setAnnouncement(t.quick.cancelled);
+        track('upscale-cancel', { model: modelType });
       } else {
         console.error(err);
+        track('upscale-error', {
+          model: modelType,
+          message: (err instanceof Error ? err.message : String(err)).slice(0, 200),
+        });
       }
     }
   };
@@ -90,6 +103,7 @@ export default function QuickScale() {
     const baseName = input?.name.replace(/\.[^.]+$/, '') ?? 'image';
     await setImage(dataUrlToBlob(result.url), `${baseName}-${result.model}.png`, 'quick-result');
     clearWallReturn();
+    track('send-to-print');
     goTo('print');
   };
 
@@ -97,6 +111,7 @@ export default function QuickScale() {
     if (!result || !wallReturn) return;
     deliverToFrame({ frameId: wallReturn.frameId, dataUrl: result.url, width: result.width, height: result.height });
     clearWallReturn();
+    track('send-to-wall');
     goTo('wall');
   };
 
@@ -249,6 +264,7 @@ export default function QuickScale() {
                 <a
                   href={result.url}
                   download={`upscaled-${result.model}.png`}
+                  onClick={() => track('download', { type: 'upscaled', model: result.model })}
                   className={buttonClasses({ variant: 'primary', size: 'md' })}
                 >
                   <Download className="w-4 h-4" aria-hidden="true" />

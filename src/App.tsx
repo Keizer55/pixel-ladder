@@ -4,6 +4,7 @@ import Navigation from './components/Navigation';
 import CookieConsent from './components/CookieConsent';
 import { I18nProvider, useI18n } from './i18n/I18nProvider';
 import { WorkspaceProvider, useWorkspace, type Tab } from './lib/Workspace';
+import { track } from './lib/analytics';
 
 const QuickScale = lazy(() => import('./components/QuickScale'));
 const PrintStudio = lazy(() => import('./components/PrintStudio'));
@@ -38,6 +39,7 @@ function AppShell() {
     if (window.clarity) {
       window.clarity('set', 'active_tab', activeTab);
     }
+    track('tab-view', { tab: activeTab });
   }, [activeTab]);
 
   return (
