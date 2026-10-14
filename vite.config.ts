@@ -34,7 +34,11 @@ function ortWasmDevServerPlugin() {
           filename = filename.replace('.js', '.mjs');
         }
 
-        const filePath = path.join(ORT_DIST, filename);
+        // Only plain file names from ORT_DIST: the URL comes from the request,
+        // so `/ort/../../x` must not resolve outside it (path traversal).
+        if (!/^[\w.-]+$/.test(filename)) return next();
+        const filePath = path.resolve(ORT_DIST, filename);
+        if (!filePath.startsWith(ORT_DIST + path.sep)) return next();
 
         if (!existsSync(filePath)) return next();
 
