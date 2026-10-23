@@ -5,6 +5,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { track } from '../lib/analytics';
 import Button, { buttonClasses } from './ui/Button';
 import RadioCard from './ui/RadioCard';
+import SupportLink from './SupportLink';
 import { Upload, Download, Zap, Info } from 'lucide-react';
 
 type ModelType = 'x2' | 'x4' | 'x4-anime' | 'pixel-art';
@@ -398,6 +399,7 @@ export default function QuickScale() {
           <Info className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
           <span>{t.quick.howNote}</span>
         </p>
+        <SupportLink />
       </section>
     </div>
   );

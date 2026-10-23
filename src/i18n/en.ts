@@ -21,6 +21,10 @@ export const en = {
       'Whether you are preparing digital art for high-resolution print, calculating DPI for framing, or simply enhancing photos, all processing happens entirely on your local device. 100% private, no uploads or external servers required.',
     githubLink: 'Open Source AI Image Upscaler',
   },
+  support: {
+    button: 'Buy me a coffee',
+    pitch: 'Pixel Ladder is free. If it helped you, you can support it with a coffee.',
+  },
   common: {
     lowResolution: 'Low resolution.',
     upscaleInQuickScale: 'Upscale in Quick Scale →',

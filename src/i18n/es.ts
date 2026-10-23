@@ -21,6 +21,10 @@ export const es: Dict = {
       'Tanto si preparas arte digital para imprimir en alta resolución como si calculas los DPI para enmarcar o simplemente mejoras fotos, todo el proceso ocurre en tu propio equipo. 100 % privado, sin subidas ni servidores externos.',
     githubLink: 'Escalador de imágenes con IA de código abierto',
   },
+  support: {
+    button: 'Invítame a un café',
+    pitch: 'Pixel Ladder es gratis. Si te ha sido útil, puedes apoyarlo con un café.',
+  },
   common: {
     lowResolution: 'Resolución baja.',
     upscaleInQuickScale: 'Escalar en Escalado rápido →',
