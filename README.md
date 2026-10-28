@@ -63,7 +63,7 @@ Pixel Ladder uses **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** mode
 | **x4 Anime** | `RealESRGAN_x4plus_anime_6B` | 18 MB |
 | **Pixel Art** | Nearest-neighbor (no model needed) | — |
 
-> Models are not bundled in the repository due to their size. See [docs/deployment.md](./docs/deployment.md) for setup instructions.
+> The models are committed in `public/` (about 114 MB in total). See [docs/deployment.md](./docs/deployment.md) for their sources and the Coolify setup.
 
 ---
 

@@ -12,7 +12,7 @@ This guide explains how to deploy **Pixel Ladder** to a VPS using **Coolify**. S
 
 ## 🛠 1. Dependency Installation
 
-When you deploy on Coolify, you don't need to manually run `npm install`. Coolify uses **Nixpacks** (or Docker) to detect your `package.json` and automatically handle dependencies.
+When you deploy on Coolify, you don't need to manually run `npm install`. Coolify uses **Railpack** to detect your `package.json` and automatically handle dependencies (Nixpacks is deprecated in Coolify 4.5; this app moved to Railpack on 2026-10-28).
 
 > [!IMPORTANT]
 > **No Server-Side AI Libraries Needed**: Since the AI engine (ONNX Runtime Web) runs entirely in the user's browser, you do **not** need to install GPU drivers or Python on your VPS. The server only needs to serve the `.onnx` files and the static Javascript bundle.
@@ -43,18 +43,22 @@ Coolify should automatically detect it as a **Vite / Static** project. If not, s
 
 | Setting | Value |
 | :--- | :--- |
-| **Build Pack** | Nixpacks (Recommended) |
-| **Build Command** | `npm run build` |
-| **Install Command** | `npm install` |
-| **Output Directory** | `dist` |
-| **Static Site** | **Checked/True** ✅ |
+| **Build strategy** | Railpack |
+| **Site type** | Static |
+| **Web server** | `nginx:alpine` |
+| **Publish directory** | `/dist` |
+| **Install / Build / Start command** | empty (Railpack runs `npm install` and `npm run build`) |
+| **Custom Nginx configuration** | the security headers below (CSP, `nosniff`, `X-Frame-Options`…) |
+
+With a static site, Railpack only builds: the final image is still `nginx:alpine` serving `/dist` with
+the custom Nginx configuration, so switching from Nixpacks keeps the headers.
 
 ---
 
 ## 🧠 3. AI Model Files (.onnx)
 
 The app uses **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** models by [Xintao Wang (xinntao)](https://github.com/xinntao), converted to ONNX.  
-**These are NOT included in the Git repository** (too large). You must download them into `public/` before building.
+**They are committed in `public/`** (plain git objects, no LFS), so a Coolify build needs no extra step. The commands below are only for restoring or replacing them.
 
 | Filename | Size | Source |
 |---|---|---|
