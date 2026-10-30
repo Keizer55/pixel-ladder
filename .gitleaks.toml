@@ -1,0 +1,10 @@
+# Reglas por defecto de gitleaks más excepciones propias del proyecto.
+# Añadir aquí solo falsos positivos comprobados, con un comentario de por qué.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Plantillas y ejemplos sin secretos reales"
+paths = [
+  '''\.env\.example$''',
+]

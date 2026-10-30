@@ -1,0 +1,8 @@
+# Escaneo de secretos antes de cada commit (estándar de dicetamer, módulo security).
+# Instalar una vez por clon:  pip install pre-commit && pre-commit install
+# Escanear el historial completo:  gitleaks git -v
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks

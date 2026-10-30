@@ -13,6 +13,9 @@ deployment.md
 # archify skill — third-party, restored by docs/diagrams/README.md
 .claude/*
 !.claude/launch.json
+!.claude/settings.json
+!.claude/hooks/
+!.claude/commands/
 
 # archify's own viewer screenshots — a check, not a source of images
 docs/diagrams/*.visual-check.*
