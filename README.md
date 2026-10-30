@@ -1,7 +1,7 @@
 # Pixel Ladder 🐷🪜
 > *AI-powered image upscaler & print tools — runs entirely in your browser, no image uploads ever.*
 
-[![Try it Online](https://img.shields.io/badge/🔴%20Try%20it%20Online-pixel--ladder.zikzero.com-brightgreen?style=for-the-badge)](https://www.pixel-ladder.zikzero.com)
+[![Try it Online](https://img.shields.io/badge/🔴%20Try%20it%20Online-pixel--ladder.dicetamer.com-brightgreen?style=for-the-badge)](https://pixel-ladder.dicetamer.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
 [![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-Web-FF6900?style=flat-square)](https://onnxruntime.ai/)

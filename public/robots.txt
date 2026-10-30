@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.pixel-ladder.zikzero.com/sitemap.xml
+Sitemap: https://pixel-ladder.dicetamer.com/sitemap.xml
