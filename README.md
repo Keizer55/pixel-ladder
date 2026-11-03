@@ -47,8 +47,8 @@ So I built **Pixel Ladder**: a fully client-side tool that runs AI models direct
 ## 🔒 Privacy
 
 - **Images stay local** — Your images are processed on your device and are never uploaded by the app.
-- **Optional analytics** — The hosted site can load Microsoft Clarity only after you accept the cookie/analytics consent prompt.
-- **Normal web assets** — Like most websites, the hosted app may fetch third-party assets (for example, Google Fonts).
+- **Analytics** — Microsoft Clarity loads on every page, including local runs, and contacts Clarity's servers even if you decline the consent prompt. Umami (self-hosted, cookieless) only counts visits on the production domains.
+- **Normal web assets** — Like most websites, the app fetches third-party assets (Google Fonts).
 
 ---
 
@@ -77,7 +77,7 @@ Pixel Ladder uses **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** mode
 
 ## ⚡ Quick Start
 
-**Prerequisites:** Node.js 18+ and npm.
+**Prerequisites:** Node.js 20.19+ or 22.12+ and npm.
 
 ```bash
 # 1. Clone the repository
@@ -142,9 +142,9 @@ Interactive: `docs/diagrams/upscale-pipeline.html` (open it from a clone) · sou
 
 A dropped image never leaves the canvas: it is split into tiles, sent to a Web
 Worker one tile at a time, run through Real-ESRGAN in WASM, and stitched back
-with the overlap trimmed off. Nothing here is a network call — the only two
-things this app ever fetches are the model weights (once, lazily) and Microsoft
-Clarity (and only after the cookie banner is accepted).
+with the overlap trimmed off. Nothing here is a network call — besides its own
+files, including the model weights (once, lazily), the app only fetches Google
+Fonts, Umami and Microsoft Clarity.
 
 ---
 

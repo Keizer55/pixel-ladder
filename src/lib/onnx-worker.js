@@ -1,14 +1,14 @@
 import * as ort from 'onnxruntime-web/wasm';
 
-// Use an explicit per-file wasmPaths map (object form) instead of a prefix string.
+// Use the object form of wasmPaths instead of a prefix string. ONNX Runtime only
+// reads the `mjs` and `wasm` keys; without them the dev server answers the .wasm
+// request with index.html and inference fails.
 // The .mjs glue file is mapped to a .js copy because some nginx configurations
 // (including Coolify's default) don't serve .mjs as text/javascript, which causes
 // the browser to reject the dynamic import(). .js is always served correctly.
 ort.env.wasm.wasmPaths = {
-  'ort-wasm-simd-threaded.mjs':          '/ort/ort-wasm-simd-threaded.js',
-  'ort-wasm-simd-threaded.wasm':         '/ort/ort-wasm-simd-threaded.wasm',
-  'ort-wasm-simd-threaded.asyncify.wasm':'/ort/ort-wasm-simd-threaded.asyncify.wasm',
-  'ort-wasm-simd-threaded.jsep.wasm':    '/ort/ort-wasm-simd-threaded.jsep.wasm',
+  mjs:  '/ort/ort-wasm-simd-threaded.js',
+  wasm: '/ort/ort-wasm-simd-threaded.wasm',
 };
 
 ort.env.wasm.numThreads = 1; // safe default; threads require SharedArrayBuffer

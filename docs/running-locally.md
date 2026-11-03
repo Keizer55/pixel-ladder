@@ -6,7 +6,7 @@ This guide provides step-by-step instructions on how to set up and run the Pixel
 
 Before you begin, ensure you have the following installed on your system:
 - **Git** (to clone the repository)
-- **Node.js** (version 18 or higher recommended)
+- **Node.js** (version 20.19+ or 22.12+)
 - **npm** (comes installed automatically with Node.js)
 
 You can verify your Node and npm installations by opening a terminal and running:
@@ -20,7 +20,7 @@ npm -v
 1. **Clone the repository** (if you haven't already):
    Open your terminal and run:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Keizer55/pixel-ladder.git
    ```
 
 2. **Navigate to the project directory**:
